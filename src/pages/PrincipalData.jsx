@@ -133,7 +133,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 0 && userDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://localhost:3001/api/usuarios/${currentUserId}`)
+            axios.get(`http://10.255.255.85:3001/api/usuarios/${currentUserId}`)
                 .then(response => {
                     setUserDataForEdit(response.data);
                 })
@@ -158,7 +158,7 @@ function PrincipalData() {
             setLoadingData(true);
             setDataError(null);
             try {
-                const url = `http://localhost:3001/api/${currentUserId}/dependientes`;
+                const url = `http://10.255.255.85:3001/api/${currentUserId}/dependientes`;
                 const response = await axios.get(url);
                 setDependientesDataForEdit(response.data);
             } catch (error) {
@@ -188,7 +188,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 2 && ingresosDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://localhost:3001/api/ingresos/Usuario/${currentUserId}`)
+            axios.get(`http://10.255.255.85:3001/api/ingresos/Usuario/${currentUserId}`)
                 .then(response => {
                     setIngresosDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -211,7 +211,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 3 && planSaludDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://localhost:3001/api/planes_salud/usuario/${currentUserId}`)
+            axios.get(`http://10.255.255.85:3001/api/planes_salud/usuario/${currentUserId}`)
                 .then(response => {
                     setPlanSaludDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -234,7 +234,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 4 && pagoDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-           axios.get(`http://localhost:3001/api/usuario/${currentUserId}`)
+           axios.get(`http://10.255.255.85:3001/api/usuario/${currentUserId}`)
                 .then(response => {
                     setPagoDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -257,7 +257,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 5 && evidenciasDataForEdit.length === 0) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://localhost:3001/api/${currentUserId}/evidencias`)
+            axios.get(`http://10.255.255.85:3001/api/${currentUserId}/evidencias`)
                 .then(response => {
                     setEvidenciasDataForEdit(response.data);
                 })

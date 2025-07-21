@@ -39,7 +39,7 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
         const fetchPagoInfo = async () => {
             if (userId) {
                 try {
-                    const res = await axios.get(`http://localhost:3001/api/usuario/${userId}`);
+                    const res = await axios.get(`http://10.255.255.85:3001/api/usuario/${userId}`);
                     if (res.data.length > 0) {
                         const pagoData = res.data[0];
                         setFormData({
@@ -147,7 +147,7 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
                 fecha_expiracion_ano: selectedYear
             };
 
-            const response = await axios.post(`http://localhost:3001/api`, dataToSend);
+            const response = await axios.post(`http://10.255.255.85:3001/api`, dataToSend);
             setMessage(response.data.message);
 
             if (onPagoUpdated) {

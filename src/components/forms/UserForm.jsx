@@ -162,7 +162,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
 
             if (userIdForUpdate) {
                 // Hacemos un PUT para actualizar
-                response = await axios.put(`http://localhost:3001/api/usuarios/${userIdForUpdate}`, dataToSend);
+                response = await axios.put(`http://10.255.255.85:3001/api/usuarios/${userIdForUpdate}`, dataToSend);
                 setMessage('✅ Usuario actualizado con éxito.');
                 // Llama al callback para notificar al padre que la actualización fue exitosa
                 if (onUserUpdated) {
@@ -170,7 +170,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                 }
             } else {
                 // Hacemos un POST para crear
-                response = await axios.post('http://localhost:3001/api/usuarios', dataToSend);
+                response = await axios.post('http://10.255.255.85:3001/api/usuarios', dataToSend);
                 setMessage('✅ Usuario creado con éxito. ID: ' + response.data.userId);
                 // Llama al callback para el nuevo usuario
                 if (onUserCreated) {

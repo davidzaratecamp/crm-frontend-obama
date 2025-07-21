@@ -40,7 +40,7 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
         const fetchPlanSalud = async () => {
             if (userId) {
                 try {
-                    const res = await axios.get(`http://localhost:3001/api/planes_salud/usuario/${userId}`);
+                    const res = await axios.get(`http://10.255.255.85:3001/api/planes_salud/usuario/${userId}`);
                     if (res.data.length > 0) {
                         const planData = res.data[0];
                         setFormData({
@@ -153,7 +153,7 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
                 valor_prima: parseFloat(formData.valor_prima)
             };
 
-            const response = await axios.post('http://localhost:3001/api/planes_salud', dataToSend);
+            const response = await axios.post('http://10.255.255.85:3001/api/planes_salud', dataToSend);
             setMessage(response.data.message);
 
             if (onPlanSaludUpdated) {

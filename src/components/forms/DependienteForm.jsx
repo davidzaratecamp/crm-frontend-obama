@@ -138,11 +138,11 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
 
             if (editingDependienteId) {
                 // Si estamos editando, hacemos un PUT
-                response = await axios.put(`http://localhost:3001/api/dependientes/${editingDependienteId}`, dataToSend);
+                response = await axios.put(`http://10.255.255.85:3001/api/dependientes/${editingDependienteId}`, dataToSend);
                 setMessage('✅ Dependiente actualizado con éxito.');
             } else {
                 // Si no, hacemos un POST para crear uno nuevo
-                response = await axios.post(`http://localhost:3001/api/${userId}/dependientes`, dataToSend);
+                response = await axios.post(`http://10.255.255.85:3001api/${userId}/dependientes`, dataToSend);
                 setMessage('✅ Dependiente añadido con éxito. ID: ' + response.data.dependienteId);
             }
 
@@ -192,7 +192,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const deleteDependiente = async (idToDelete) => {
         if (window.confirm('¿Estás seguro de que quieres eliminar este dependiente?')) {
             try {
-                await axios.delete(`http://localhost:3001/api/dependientes/${idToDelete}`);
+                await axios.delete(`http://10.255.255.85:3001/api/dependientes/${idToDelete}`);
                 setMessage('✅ Dependiente eliminado con éxito.');
                 // Refrescar la lista en el padre o filtrar localmente
                 if (onDependienteAdded) { // Usamos el mismo callback para notificar al padre que algo cambió

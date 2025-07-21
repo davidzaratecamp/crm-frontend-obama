@@ -49,11 +49,11 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
             if (userId) {
                 try {
                     // Cargar dependientes
-                    const dependientesRes = await axios.get(`http://localhost:3001/api/${userId}/dependientes`);
+                    const dependientesRes = await axios.get(`http://10.255.255.85:3001/api/${userId}/dependientes`);
                     setDependientes(dependientesRes.data);
 
                     // Cargar ingresos existentes para el usuario principal y sus dependientes
-                    const ingresosRes = await axios.get(`http://localhost:3001/api/ingresos/Usuario/${userId}`);
+                    const ingresosRes = await axios.get(`http://10.255.255.85:3001/api/ingresos/Usuario/${userId}`);
                     const allExistingIngresos = ingresosRes.data;
 
                     // Precargar los ingresos del usuario principal si existen
@@ -217,7 +217,7 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
         console.log('Ingresos a enviar al backend:', allIngresosToSubmit);
 
         try {
-            const currentIngresosRes = await axios.get(`http://localhost:3001/api/ingresos/Usuario/${userId}`);
+            const currentIngresosRes = await axios.get(`http://10.255.255.85:3001/api/ingresos/Usuario/${userId}`);
             const existingIngresos = currentIngresosRes.data;
 
             for (const existingIng of existingIngresos) {
@@ -225,7 +225,7 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                     subIng => subIng.tipo_entidad === existingIng.tipo_entidad && subIng.entidad_id === existingIng.entidad_id
                 );
                 if (!foundInSubmit) {
-                    await axios.delete(`http://localhost:3001/api/ingresos/${existingIng.id}`);
+                    await axios.delete(`http://10.255.255.85:3001/api/ingresos/${existingIng.id}`);
                 }
             }
 
@@ -235,9 +235,9 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                 );
 
                 if (existingEntry) {
-                    await axios.put(`http://localhost:3001/api/ingresos/${existingEntry.id}`, ingreso);
+                    await axios.put(`http://10.255.255.85:3001/api/ingresos/${existingEntry.id}`, ingreso);
                 } else {
-                    await axios.post('http://localhost:3001/api/ingresos', ingreso);
+                    await axios.post('http://10.255.255.85:3001/api/ingresos', ingreso);
                 }
             }
 
