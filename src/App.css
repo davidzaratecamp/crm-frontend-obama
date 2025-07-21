@@ -1,0 +1,321 @@
+/* frontend/src/App.css */
+
+/* Contenedor principal de la aplicación */
+.app-container {
+  display: flex; /* Usamos flexbox para el layout principal */
+  width: 100%;
+  min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+  background-color: #f0f2f5; /* Un color de fondo gris muy claro para el app-container */
+}
+
+/* El área de contenido principal (donde se renderiza PrincipalData.jsx) */
+.main-content {
+  flex-grow: 1; /* Hace que ocupe todo el espacio restante después del sidebar */
+  padding: 20px 30px; /* Padding interno para el contenido de la página */
+  margin: 20px 30px 20px 270px; /* Margen para dejar espacio al sidebar fijo: top, right, bottom, left */
+  /* NOTA: El fondo blanco y las sombras de "módulo" ahora se aplican a cada AccordionItem individualmente */
+}
+
+/* --- Estilos para los formularios dentro de PrincipalData.jsx (en los AccordionItems) --- */
+
+/* Contenedor flex para las columnas de los campos dentro de un formulario */
+.accordion-content .form-grid {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los campos salten a la siguiente línea */
+    gap: 20px; /* Espacio entre los campos, tanto horizontal como vertical */
+    margin-bottom: 20px; /* Espacio debajo de la cuadrícula de campos */
+}
+
+/* Cada campo individual que actuará como una columna */
+.accordion-content .form-field {
+    /* Distribución en 3 columnas (aprox.) */
+    flex: 1 1 calc(33.33% - 20px); /* Ajuste para 3 columnas con un gap de 20px */
+    min-width: 250px; /* Asegura un tamaño mínimo para la legibilidad del campo */
+
+    display: flex;
+    flex-direction: column; /* Apila el texto del label sobre el input */
+}
+
+/* Estilo específico para el checkbox "Solicita cobertura?" para que ocupe una fila completa */
+.accordion-content .form-field:first-child {
+    flex: 1 1 100%; /* Ocupa el 100% del ancho para una fila completa */
+}
+
+/* Estilos para el texto de las etiquetas (labels) */
+.accordion-content .form-field label {
+    margin-bottom: 8px; /* Espacio entre el texto del label y el input */
+    font-weight: 500; /* Peso de la fuente para un aspecto más profesional */
+    color: #495057; /* Un gris oscuro suave para el texto de la etiqueta */
+    font-size: 0.95em;
+}
+
+/* Estilos generales para todos los inputs de texto, email, tel, date, number y selects */
+.accordion-content .form-field input[type="text"],
+.accordion-content .form-field input[type="email"],
+.accordion-content .form-field input[type="tel"],
+.accordion-content .form-field input[type="date"],
+.accordion-content .form-field input[type="number"],
+.accordion-content .form-field select {
+  width: 100%; /* El input ocupa el 100% del ancho de su contenedor .form-field */
+  padding: 12px 15px; /* Más padding para mayor espacio interno */
+  border: 1px solid #e0e0e0; /* Borde más claro y sutil */
+  border-radius: 8px; /* Bordes redondeados para inputs */
+  font-size: 1em;
+  color: #343a40;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Transición suave para enfoque */
+}
+
+/* Estilo para los inputs al estar enfocados (al hacer clic en ellos) */
+.accordion-content .form-field input:focus,
+.accordion-content .form-field select:focus {
+  border-color: #80bdff; /* Borde azul suave al enfocar */
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Sombra azul suave al enfocar */
+  outline: none; /* Elimina el contorno por defecto del navegador */
+}
+
+/* Estilo para el input de tipo checkbox */
+.accordion-content .form-field input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.1); /* Ligeramente más grande */
+}
+
+/* Estilos de botones con un aspecto más profesional */
+.accordion-content button {
+  background-color: #007bff; /* Color azul primario */
+  color: white;
+  padding: 12px 25px; /* Más padding para un botón más grande */
+  border: none;
+  border-radius: 8px; /* Bordes más redondeados */
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  margin-top: 15px;
+  transition: background-color 0.3s ease, transform 0.1s ease; /* Transiciones para efectos */
+}
+
+/* Efecto al pasar el mouse sobre el botón */
+.accordion-content button:hover {
+  background-color: #0056b3; /* Un tono de azul más oscuro */
+  transform: translateY(-2px); /* Pequeño efecto de levantamiento */
+}
+
+/* Efecto al hacer clic en el botón */
+.accordion-content button:active {
+    transform: translateY(0); /* Vuelve a la posición normal al hacer clic */
+}
+
+/* Estilo para botones deshabilitados */
+.accordion-content button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none; /* Quita el efecto al estar deshabilitado */
+}
+
+/* Estilos para mensajes de éxito/error */
+.accordion-content p {
+    margin-top: 5px;
+    margin-bottom: 20px; /* Más espacio debajo de los mensajes */
+    font-size: 0.9em;
+    padding: 10px 15px; /* Padding para los mensajes */
+    border-radius: 5px;
+}
+/* Color de fondo y borde para mensajes de éxito */
+.accordion-content p[style*="color: green"] {
+    background-color: #e6ffe6;
+    border: 1px solid #b3ffb3;
+}
+/* Color de fondo y borde para mensajes de error */
+.accordion-content p[style*="color: red"] {
+    background-color: #ffe6e6;
+    border: 1px solid #ffb3b3;
+}
+
+/* Estilos para los títulos de la página y secciones */
+h1 {
+  font-size: 2.5em; /* Tamaño grande para el título principal */
+  color: #343a40;
+  margin-bottom: 40px; /* Mucho espacio debajo del título */
+  font-weight: 700;
+  text-align: left; /* Alineado a la izquierda */
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9ecef; /* Una línea sutil debajo */
+}
+
+/* Otros títulos (si se usan, como en IngresoForm) */
+h2 {
+  font-size: 1.8em;
+  color: #495057;
+  margin-bottom: 20px;
+  font-weight: 600;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 10px;
+}
+
+h3 {
+  font-size: 1.4em;
+  color: #495057;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+h4 {
+  font-size: 1.2em;
+  color: #555;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+/* Ocultar el checkbox nativo */
+.toggle-switch-input {
+    display: none; /* Esconder el checkbox por defecto del navegador */
+}
+
+/* Estilo del contenedor del switch (el track o "carril" gris/azul) */
+.toggle-switch-label {
+    position: relative;
+    display: inline-flex; /* Usa inline-flex para alinear el texto y el switch */
+    align-items: center; /* Centra verticalmente el texto y el switch */
+    cursor: pointer;
+    font-size: 1em; /* Asegura un tamaño de fuente legible para la pregunta */
+    color: #495057; /* Color de texto para la pregunta */
+    user-select: none; /* Evita que el texto sea seleccionable */
+    width: 100%; /* Permite que el label ocupe el ancho completo del form-field */
+}
+
+/* El slider (la "perilla" o círculo que se mueve) */
+.toggle-switch-slider {
+    position: relative; /* Para posicionar el círculo dentro */
+    width: 50px; /* Ancho del switch */
+    height: 26px; /* Alto del switch */
+    background-color: #ccc; /* Color cuando está apagado (gris) */
+    border-radius: 26px; /* Hace el track redondeado */
+    transition: background-color 0.4s; /* Animación de cambio de color */
+    margin-left: 15px; /* Espacio entre el texto y el switch */
+    flex-shrink: 0; /* Evita que el switch se encoja */
+}
+
+/* El círculo dentro del slider */
+.toggle-switch-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px; /* Tamaño del círculo */
+    height: 20px;
+    border-radius: 50%; /* Hace el círculo */
+    background-color: white; /* Color del círculo */
+    top: 3px; /* Posición vertical del círculo */
+    left: 3px; /* Posición horizontal del círculo cuando está apagado */
+    transition: transform 0.4s; /* Animación de movimiento del círculo */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Sombra para el círculo */
+}
+
+/* Estado cuando el checkbox está 'checked' (encendido) */
+.toggle-switch-input:checked + .toggle-switch-slider {
+    background-color: #007bff; /* Color cuando está encendido (azul) */
+}
+
+/* Mueve el círculo cuando el checkbox está 'checked' (encendido) */
+.toggle-switch-input:checked + .toggle-switch-slider::before {
+    transform: translateX(24px); /* Mueve el círculo a la derecha (50px - 20px - 3px*2 = 24px) */
+}
+
+/* Estilo para el form-field que contiene el toggle switch (para que ocupe todo el ancho) */
+/* Esto ya lo habíamos puesto, pero lo reitero para asegurar que se aplica bien al checkbox */
+.accordion-content .form-field:first-child {
+    flex: 1 1 100%; /* Ocupa el 100% del ancho para una fila completa */
+}
+
+/* Estilo para campos de solo lectura */
+.accordion-content .form-field .read-only-input {
+    background-color: #f8f9fa; /* Un gris muy claro */
+    border-color: #e9ecef; /* Un borde ligeramente diferente */
+    cursor: not-allowed; /* Indica que no es editable */
+    opacity: 0.8; /* Ligeramente menos opaco */
+}
+
+/* Estilos para el separador de secciones dentro de los formularios */
+.form-section-separator {
+    flex: 1 1 100%; /* Hace que ocupe todo el ancho para ser una línea de separación */
+    border-bottom: 1px solid #e0e0e0; /* Una línea divisoria sutil */
+    padding-top: 20px; /* Espacio antes de la línea */
+    margin-top: 20px; /* Espacio entre la sección anterior y el separador */
+    padding-bottom: 15px; /* Espacio después del título del separador */
+    margin-bottom: 15px; /* Espacio después de la línea y antes de la nueva sección */
+    text-align: left; /* Alinea el título del separador a la izquierda */
+}
+
+.form-section-separator h4 {
+    font-size: 1.15em;
+    color: #555;
+    margin-bottom: 0; /* No queremos margen extra debajo del h4 dentro del separador */
+    font-weight: 600;
+}
+
+/* Ajustes para los mensajes de éxito/error, si no usas FormStyles.css */
+.form-messages {
+    margin-top: 10px;
+    margin-bottom: 25px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInSlideUp 0.5s forwards;
+}
+
+@keyframes fadeInSlideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-messages.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.form-messages.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+.card-logo-container {
+    margin-top: 10px;
+    height: 30px; /* Ajusta la altura según tus imágenes */
+    display: flex;
+    align-items: center;
+}
+
+.card-logo {
+    max-height: 100%;
+    width: auto;
+    transition: all 0.3s ease-in-out; /* Animación suave al cambiar */
+    opacity: 0.8;
+}
+
+.card-logo:hover {
+    opacity: 1;
+}
+
+/* Opcional: si quieres un efecto más dinámico */
+.card-logo-container img {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.help-text {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+}

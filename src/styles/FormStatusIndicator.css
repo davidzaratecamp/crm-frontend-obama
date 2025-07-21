@@ -1,0 +1,21 @@
+/* frontend/src/components/statusIndicators/FormStatusIndicator.css */
+.form-status-indicator {
+    font-size: 0.85em;
+    padding: 4px 8px;
+    border-radius: 5px;
+    margin-left: 15px;
+    font-weight: 600;
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.form-status-indicator.completed {
+    background-color: #d4edda; /* Light green */
+    color: #155724; /* Dark green */
+    border: 1px solid #c3e6cb;
+}
+
+.form-status-indicator.incomplete {
+    background-color: #fff3cd; /* Light yellow */
+    color: #856404; /* Dark yellow */
+    border: 1px solid #ffeeba;
+}

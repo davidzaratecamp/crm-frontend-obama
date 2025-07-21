@@ -1,0 +1,120 @@
+/* frontend/src/components/Sidebar.css */
+.sidebar-container {
+  width: 240px; /* Un poco más estrecho, como en la imagen */
+  background-color: #ffffff; /* Fondo blanco como en tu imagen */
+  color: #343a40; /* Texto oscuro */
+  position: fixed;
+  height: 100vh;
+  padding: 20px 0;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.08); /* Sombra sutil pero visible */
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  border-right: 1px solid #f0f0f0; /* Un borde sutil a la derecha */
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 15px 0 25px 0; /* Más espacio vertical */
+}
+
+.sidebar-logo {
+  width: 90px; /* Un poco más grande para el logo */
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Sombra para el logo */
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px; /* Menos margen superior */
+}
+
+.nav-item {
+  position: relative;
+  margin-bottom: 5px; /* Espacio entre ítems del menú */
+}
+
+.nav-item a {
+  display: flex;
+  align-items: center;
+  padding: 14px 25px; /* Más padding */
+  color: #495057; /* Color de texto más suave */
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 1.05em; /* Un poco más grande */
+  border-radius: 8px; /* Bordes redondeados para los ítems */
+  margin: 0 10px; /* Margen horizontal para el efecto "flotante" */
+}
+
+.nav-item a:hover {
+  background-color: #e9f5ff; /* Azul muy claro al pasar el mouse */
+  color: #007bff; /* Texto azul al pasar el mouse */
+  box-shadow: 0 2px 10px rgba(0, 123, 255, 0.1); /* Sombra sutil al pasar el mouse */
+}
+
+.nav-item.active a {
+  background-color: #007bff; /* Fondo azul para el activo */
+  color: white; /* Texto blanco para el activo */
+  font-weight: 600; /* Más peso para el texto activo */
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2); /* Sombra más fuerte para el activo */
+}
+
+/* Iconos de flecha para submenús */
+.nav-item.has-submenu > a::after {
+    content: '›'; /* Flecha tipo chevron hacia la derecha */
+    position: absolute;
+    right: 25px;
+    font-size: 1.2em;
+    transform: rotate(90deg); /* La giramos para que apunte hacia abajo por defecto */
+    transition: transform 0.2s ease;
+}
+
+/* Rotar flecha cuando el submenú está abierto */
+/* Necesitarías añadir una clase 'open' al nav-item cuando esté desplegado */
+.nav-item.has-submenu.open > a::after {
+    transform: rotate(0deg); /* Apunta hacia arriba o a la izquierda */
+}
+
+
+.submenu {
+  list-style: none;
+  padding: 0;
+  background-color: #f8f9fa; /* Fondo muy claro para el submenú */
+  margin-left: 20px; /* Indentar el submenú */
+  border-radius: 8px; /* Bordes redondeados para el submenú */
+  margin-top: 5px; /* Espacio con el ítem padre */
+  overflow: hidden; /* Para animaciones de despliegue */
+}
+
+.submenu-item a {
+  padding: 10px 20px 10px 45px; /* Indentación mayor para sub-ítems */
+  color: #6c757d; /* Un gris más oscuro para sub-ítems */
+  font-size: 0.9em;
+  display: block;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+
+.submenu-item a:hover {
+  background-color: #e2f0fe; /* Fondo más claro al pasar el mouse en sub-ítems */
+  color: #0056b3;
+}
+
+.submenu-item.active a {
+  background-color: #e0f2f7; /* Fondo azul muy claro para sub-ítem activo */
+  color: #007bff; /* Texto azul para sub-ítem activo */
+  font-weight: 500;
+}
+
+/* Para los iconos del menú (si los usas) */
+.nav-item a i { /* Suponiendo que usas Font Awesome o similar */
+    margin-right: 12px;
+    font-size: 1.2em;
+}

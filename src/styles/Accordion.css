@@ -1,0 +1,62 @@
+/* frontend/src/components/Accordion.css */
+.accordion-item {
+    border: 1px solid #e0e0e0; /* Borde más sutil */
+    margin-bottom: 15px; /* Más espacio entre ítems */
+    border-radius: 10px; /* Bordes más redondeados */
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04); /* Sombra sutil para cada acordeón */
+}
+
+.accordion-header {
+    width: 100%;
+    background-color: #fdfdfd; /* Fondo casi blanco para la cabecera */
+    padding: 18px 25px; /* Más padding */
+    text-align: left;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.2em; /* Título un poco más grande */
+    font-weight: 600; /* Más peso para el título */
+    color: #343a40;
+    border-bottom: 1px solid #f0f0f0; /* Borde inferior muy sutil */
+    transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover:not(:disabled) {
+    background-color: #f5f5f5; /* Un gris muy suave al pasar el mouse */
+}
+
+.accordion-header:disabled {
+    background-color: #fafafa; /* Fondo más claro cuando está deshabilitado */
+    color: #a0a0a0;
+    cursor: not-allowed;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-content {
+    padding: 25px; /* Más padding interno */
+    background-color: #ffffff; /* Fondo blanco para el contenido */
+    border-top: none;
+}
+
+.accordion-icon {
+    font-size: 1.8em; /* Icono más grande */
+    margin-left: 15px;
+    color: #6c757d; /* Color gris para el icono */
+    transition: transform 0.2s ease;
+}
+.accordion-header.is-open .accordion-icon { /* Asume que AccordionHeader obtiene una clase 'is-open' cuando el acordeón está abierto */
+    transform: rotate(45deg); /* Gira el '+' a una 'x' o simplemente rota si usas otro ícono */
+}
+
+.check-icon {
+    color: #28a745; /* Verde Bootstrap */
+    font-weight: bold;
+    font-size: 1.4em;
+    margin-right: 12px;
+}
+h3 {
+    font-family: Helvetica, Arial, sans-serif;
+}
