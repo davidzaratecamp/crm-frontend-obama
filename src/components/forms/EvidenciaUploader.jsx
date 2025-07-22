@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated }) {
     const [selectedFiles, setSelectedFiles] = useState([]); // Array para múltiples archivos
     const [fileDescription, setFileDescription] = useState('');
@@ -15,7 +17,7 @@ function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated 
             if (userId) {
                 try {
                     // Endpoint: /api/usuarios/:usuarioId/evidencias (coincide con tu router)
-                    const res = await axios.get(`http://10.255.255.85:3001/api/${userId}/evidencias`);
+                    const res = await axios.get(`${API_BASE_URL}/api/${userId}/evidencias`);
                     setEvidencias(res.data);
                 } catch (err) {
                     console.error('Error al cargar evidencias existentes:', err);
@@ -58,7 +60,7 @@ function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated 
 
         try {
             // Endpoint: /api/usuarios/:usuarioId/evidencias (coincide con tu router POST)
-            const res = await axios.post(`http://10.255.255.85:3001/api/${userId}/evidencias`, formData, {
+            const res = await axios.post(`${API_BASE_URL}/api/${userId}/evidencias`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -67,7 +69,7 @@ function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated 
             setSelectedFiles([]); // Limpiar archivos seleccionados
             setFileDescription('');
             // Volver a cargar la lista de evidencias para ver los nuevos
-            const updatedRes = await axios.get(`http://10.255.255.85:3001/api/${userId}/evidencias`);
+            const updatedRes = await axios.get(`${API_BASE_URL}/api/${userId}/evidencias`);
             setEvidencias(updatedRes.data);
 
             if (onEvidenciasCompleted) {
@@ -83,7 +85,7 @@ function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated 
         if (window.confirm('¿Estás seguro de que quieres eliminar esta evidencia? Esta acción es irreversible.')) {
             try {
                 // Endpoint: /api/evidencias/:id (coincide con tu router DELETE)
-                await axios.delete(`http://10.255.255.85:3001/api/evidencias/${evidenciaId}`);
+                await axios.delete(`${API_BASE_URL}/api/evidencias/${evidenciaId}`);
                 setMessage('✅ Evidencia eliminada con éxito.');
                 setEvidencias(prev => prev.filter(ev => ev.id !== evidenciaId)); // Eliminar de la lista local
                 if (onEvidenciasUpdated) { // Si hay una función de actualización
@@ -147,7 +149,7 @@ function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated 
                                 {ev.ruta_archivo && ( // Asegúrate de que la ruta sea accesible
                                     // La ruta debe ser accesible desde el frontend.
                                     // Asegúrate de que tu backend sirva la carpeta 'uploads' como estática
-                                    <a href={`http://10.255.255.85:3001${ev.ruta_archivo}`} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '10px' }}>Ver</a>
+                                     <a href={`${API_BASE_URL}${ev.ruta_archivo}`} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '10px' }}>Ver</a>
                                 )}
                                 <button
                                     onClick={() => handleDeleteEvidencia(ev.id)}

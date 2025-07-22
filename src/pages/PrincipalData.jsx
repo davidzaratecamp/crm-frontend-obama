@@ -13,6 +13,8 @@ import PagoForm from '../components/forms/PagoForm';
 import EvidenciaUploader from '../components/forms/EvidenciaUploader';
 import Navbar from '../components/Navbar'; // Asegúrate de importar Navbar
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function PrincipalData() {
     const [currentUserId, setCurrentUserId] = useState(null);
     const [completedSteps, setCompletedSteps] = useState({});
@@ -133,7 +135,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 0 && userDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://10.255.255.85:3001/api/usuarios/${currentUserId}`)
+            axios.get(`${API_BASE_URL}/api/usuarios/${currentUserId}`)
                 .then(response => {
                     setUserDataForEdit(response.data);
                 })
@@ -158,7 +160,7 @@ function PrincipalData() {
             setLoadingData(true);
             setDataError(null);
             try {
-                const url = `http://10.255.255.85:3001/api/${currentUserId}/dependientes`;
+                const url = `${API_BASE_URL}/api/${currentUserId}/dependientes`;
                 const response = await axios.get(url);
                 setDependientesDataForEdit(response.data);
             } catch (error) {
@@ -188,7 +190,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 2 && ingresosDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://10.255.255.85:3001/api/ingresos/Usuario/${currentUserId}`)
+            axios.get(`${API_BASE_URL}/api/ingresos/Usuario/${currentUserId}`)
                 .then(response => {
                     setIngresosDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -211,7 +213,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 3 && planSaludDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://10.255.255.85:3001/api/planes_salud/usuario/${currentUserId}`)
+            axios.get(`${API_BASE_URL}/api/planes_salud/usuario/${currentUserId}`)
                 .then(response => {
                     setPlanSaludDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -234,7 +236,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 4 && pagoDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-           axios.get(`http://10.255.255.85:3001/api/usuario/${currentUserId}`)
+           axios.get(`${API_BASE_URL}/api/usuario/${currentUserId}`)
                 .then(response => {
                     setPagoDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -257,7 +259,7 @@ function PrincipalData() {
         if (currentUserId && openAccordionIndex === 5 && evidenciasDataForEdit.length === 0) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`http://10.255.255.85:3001/api/${currentUserId}/evidencias`)
+            axios.get(`${API_BASE_URL}/api/${currentUserId}/evidencias`)
                 .then(response => {
                     setEvidenciasDataForEdit(response.data);
                 })

@@ -5,6 +5,8 @@ import { calculateAge } from '../../utils/dateCalculations';
 import LocationSelector from './LocationSelector';
 import FormStatusIndicator from '../statusIndicators/FormStatusIndicator'; // Importa el indicador
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function DependienteForm({ userId, onDependienteAdded, initialData, onContinueToIngresos }) {
     const [formData, setFormData] = useState({
         parentesco: 'Hijo',
@@ -14,7 +16,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         sexo: '', // Cambiado a vacío
         direccion: '',
         fecha_nacimiento: '',
-        social: '',
+        social: '', // Mantener como string para permitir el control de 9 dígitos
         estatus_migratorio: '', // Cambiado a vacío
         medicare_medicaid: false,
         estado: '',
@@ -45,40 +47,28 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const requiredFields = [
         'parentesco', 'nombres', 'apellidos', 'sexo', 'fecha_nacimiento',
         'estatus_migratorio', 'direccion'
-        // Location fields (estado, condado, ciudad) se chequearán directamente de formData
+        // 'social' no está aquí, lo que significa que no es un campo obligatorio para el llenado del formulario.
+        // Si necesitas que social sea obligatorio, añádelo aquí y también el atributo 'required' al input.
     ];
     const totalRequiredFields = requiredFields.length + 3; // +3 para Estado, Condado, Ciudad
 
     const [completedRequiredFields, setCompletedRequiredFields] = useState(0);
 
     // --- Lógica de precarga de datos (cuando initialData cambia) ---
-    // initialData para dependientes es un ARRAY de dependientes
     useEffect(() => {
         if (initialData && initialData.length > 0) {
-            setDependientesList(initialData); // Precargar la lista de dependientes existentes
-            // Si queremos precargar el formulario con el PRIMER dependiente para editar por defecto:
-            // editDependiente(initialData[0].id); // Podrías tener una lógica para seleccionar cuál editar
+            setDependientesList(initialData);
+            // La lógica para editar un dependiente específico se manejará al hacer clic en 'Editar'
         } else {
-            setDependientesList([]); // Si no hay datos, asegurar que la lista esté vacía
-            // Resetear el formulario de edición/creación
-            setFormData({
-                parentesco: 'Hijo', solicita_cobertura: false, nombres: '', apellidos: '',
-                sexo: '', direccion: '', fecha_nacimiento: '', social: '', estatus_migratorio: '',
-                medicare_medicaid: false, estado: '', condado: '', ciudad: ''
-            });
-            setCurrentLocation({ estado: '', condado: '', ciudad: '' });
-            setEditingDependienteId(null);
-            setAge(null);
+            setDependientesList([]);
+            clearForm(); // Resetea el formulario completamente
         }
-    }, [initialData]); // Se ejecuta cuando initialData cambia (ej. al abrir el acordeón)
+    }, [initialData]);
 
-
-    // Recalcular campos completados cada vez que formData cambia
     useEffect(() => {
         setCompletedRequiredFields(countCompletedFields());
     }, [formData]);
 
-    // Recalcular la edad cuando la fecha de nacimiento cambie
     useEffect(() => {
         const calculatedAge = calculateAge(formData.fecha_nacimiento);
         setAge(calculatedAge);
@@ -101,10 +91,22 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+
+        if (name === 'social') {
+            // Eliminar cualquier cosa que no sea un dígito
+            const cleanedValue = value.replace(/\D/g, '');
+            // Limitar a 9 dígitos
+            const limitedValue = cleanedValue.slice(0, 9);
+            setFormData(prev => ({
+                ...prev,
+                [name]: limitedValue
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
     };
 
     const handleLocationChange = (location) => {
@@ -132,38 +134,33 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
             return;
         }
 
+        // Validación específica para el número social (si se ha ingresado, debe tener 9 dígitos)
+        // Solo valida si el campo 'social' tiene algún valor.
+        if (formData.social && (formData.social.length !== 9 || !/^\d{9}$/.test(formData.social))) {
+            setError('❌ El número social debe contener exactamente 9 dígitos.');
+            return;
+        }
+
+
         try {
             let response;
-            const dataToSend = { ...formData }; // Envía todo formData
+            const dataToSend = { ...formData };
 
             if (editingDependienteId) {
                 // Si estamos editando, hacemos un PUT
-                response = await axios.put(`http://10.255.255.85:3001/api/dependientes/${editingDependienteId}`, dataToSend);
+                response = await axios.put(`${API_BASE_URL}/api/dependientes/${editingDependienteId}`, dataToSend);
                 setMessage('✅ Dependiente actualizado con éxito.');
             } else {
                 // Si no, hacemos un POST para crear uno nuevo
-                response = await axios.post(`http://10.255.255.85:3001api/${userId}/dependientes`, dataToSend);
+                response = await axios.post(`${API_BASE_URL}/api/${userId}/dependientes`, dataToSend);
                 setMessage('✅ Dependiente añadido con éxito. ID: ' + response.data.dependienteId);
             }
 
-            // Después de la operación, refrescar la lista de dependientes y resetear el formulario
-            // La llamada a onDependienteAdded en el padre hará que se recarguen los datos.
-            // setDependientesList(prev => editingDependienteId ? prev.map(dep => dep.id === editingDependienteId ? { ...dep, ...dataToSend } : dep) : [...prev, { ...dataToSend, id: response.data.dependienteId }]);
-            
-            // Llamar al callback del padre para que refresque su lista de dependientes.
             if (onDependienteAdded) {
                 onDependienteAdded(editingDependienteId || response.data.dependienteId);
             }
 
-            // Resetear el formulario para añadir/editar uno nuevo
-            setFormData({
-                parentesco: 'Hijo', solicita_cobertura: false, nombres: '', apellidos: '',
-                sexo: '', direccion: '', fecha_nacimiento: '', social: '', estatus_migratorio: '',
-                medicare_medicaid: false, estado: '', condado: '', ciudad: ''
-            });
-            setCurrentLocation({ estado: '', condado: '', ciudad: '' });
-            setEditingDependienteId(null); // Deja de editar
-            setAge(null); // Resetea la edad
+            clearForm(); // Resetea el formulario después de añadir/actualizar
 
         } catch (err) {
             console.error('Error al añadir/actualizar dependiente:', err.response ? err.response.data : err.message);
@@ -187,27 +184,20 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         });
         setEditingDependienteId(dependiente.id); // Guardar el ID del dependiente que se está editando
         setAge(calculateAge(formattedDate)); // Recalcular edad
+        setMessage(''); // Limpiar mensajes al empezar a editar
+        setError(''); // Limpiar errores al empezar a editar
     };
 
     const deleteDependiente = async (idToDelete) => {
         if (window.confirm('¿Estás seguro de que quieres eliminar este dependiente?')) {
             try {
-                await axios.delete(`http://10.255.255.85:3001/api/dependientes/${idToDelete}`);
+                await axios.delete(`${API_BASE_URL}/api/dependientes/${idToDelete}`);
                 setMessage('✅ Dependiente eliminado con éxito.');
-                // Refrescar la lista en el padre o filtrar localmente
-                if (onDependienteAdded) { // Usamos el mismo callback para notificar al padre que algo cambió
-                    onDependienteAdded(); // Llama sin ID para indicar solo "refrescar"
+                if (onDependienteAdded) {
+                    onDependienteAdded();
                 }
-                // Si el dependiente eliminado era el que se estaba editando, limpiar el formulario
                 if (editingDependienteId === idToDelete) {
-                    setFormData({
-                        parentesco: 'Hijo', solicita_cobertura: false, nombres: '', apellidos: '',
-                        sexo: '', direccion: '', fecha_nacimiento: '', social: '', estatus_migratorio: '',
-                        medicare_medicaid: false, estado: '', condado: '', ciudad: ''
-                    });
-                    setCurrentLocation({ estado: '', condado: '', ciudad: '' });
-                    setEditingDependienteId(null);
-                    setAge(null);
+                    clearForm(); // Limpiar el formulario si se elimina el que se estaba editando
                 }
             } catch (err) {
                 console.error('Error al eliminar dependiente:', err);
@@ -317,8 +307,17 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                     </div>
 
                     <div className="form-field">
-                        <label>Social:</label>
-                        <input type="text" name="social" value={formData.social} onChange={handleChange} />
+                        <label>Número Social:</label>
+                        <input
+                            type="text"
+                            name="social"
+                            value={formData.social}
+                            onChange={handleChange}
+                            maxLength="9" // Limita a 9 caracteres en el input
+                            pattern="\d{9}" // Patrón para asegurar solo 9 dígitos (para navegadores que lo soporten)
+                            title="El número social debe contener exactamente 9 dígitos." // Mensaje de ayuda
+                            inputMode="numeric" // Optimizado para teclados numéricos en móviles
+                        />
                     </div>
 
                     <div className="form-field">

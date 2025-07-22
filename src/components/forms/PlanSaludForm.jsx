@@ -2,22 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
     const [formData, setFormData] = useState({
         aseguradora: '',
         nombre_plan: '',
         tipo_plan: '',
-        deducible: '', // Stored as raw number
-        gasto_max_bolsillo: '', // Stored as raw number
-        valor_prima: '' // Stored as raw number
+        deducible: '', // Stored as raw number (or empty string)
+        gasto_max_bolsillo: '', // Stored as raw number (or empty string)
+        valor_prima: '' // Stored as raw number (or empty string)
     });
 
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
-    // ✅ Nuevo estado para controlar qué campo numérico se está editando
     const [editingField, setEditingField] = useState(null);
 
-    // Formatter for displaying numbers with thousands separators
+    // Formatter for displaying numbers with thousands separators and two decimal places (using comma for decimals)
     const numberFormatter = new Intl.NumberFormat('es-CO', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -28,7 +29,13 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
         "Oscar", "United", "Wellpoint", "Horizon", "Kaiser"
     ];
 
-    const tipoPlanOptions = ["Bronce", "Plata", "Oro", "Platino"];
+    // ✅ Opciones actualizadas para Tipo de Plan
+    const tipoPlanOptions = [
+        "Bronce HMO", "Bronce PPO", "Bronce EPO",
+        "Plata HMO", "Plata PPO", "Plata EPO",
+        "Oro HMO", "Oro PPO", "Oro EPO",
+        "Platino HMO", "Platino PPO", "Platino EPO" // Añadí PPO y EPO para Platino para completar
+    ];
 
     // Required fields for validation
     const requiredFields = [
@@ -40,16 +47,17 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
         const fetchPlanSalud = async () => {
             if (userId) {
                 try {
-                    const res = await axios.get(`http://10.255.255.85:3001/api/planes_salud/usuario/${userId}`);
+                    const res = await axios.get(`${API_BASE_URL}/api/planes_salud/usuario/${userId}`);
                     if (res.data.length > 0) {
                         const planData = res.data[0];
                         setFormData({
                             aseguradora: planData.aseguradora || '',
                             nombre_plan: planData.nombre_plan || '',
                             tipo_plan: planData.tipo_plan || '',
-                            deducible: planData.deducible === null ? '' : planData.deducible,
-                            gasto_max_bolsillo: planData.gasto_max_bolsillo === null ? '' : planData.gasto_max_bolsillo,
-                            valor_prima: planData.valor_prima || ''
+                            // ✅ Asegúrate de que los valores numéricos se carguen como números o string vacío
+                            deducible: planData.deducible === null ? '' : parseFloat(planData.deducible),
+                            gasto_max_bolsillo: planData.gasto_max_bolsillo === null ? '' : parseFloat(planData.gasto_max_bolsillo),
+                            valor_prima: planData.valor_prima === null ? '' : parseFloat(planData.valor_prima)
                         });
                     } else {
                         setFormData({
@@ -77,24 +85,26 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
         const { name, value } = e.target;
 
         if (['deducible', 'gasto_max_bolsillo', 'valor_prima'].includes(name)) {
-            // Permitir la entrada de números, comas, puntos y que esté vacío
-            // Eliminar cualquier cosa que no sea un dígito o un punto/coma
-            let cleanValue = value.replace(/[^\d.,]/g, ''); 
-            // Reemplazar coma por punto para que parseFloat funcione correctamente
+            // ✅ Permitir la entrada de números y coma como separador decimal.
+            // Eliminar cualquier cosa que no sea un dígito o una coma.
+            let cleanValue = value.replace(/[^\d,]/g, '');
+            
+            // Reemplazar la coma por un punto para que parseFloat funcione correctamente.
+            // Esto es crucial para almacenar el valor numérico en el estado.
             cleanValue = cleanValue.replace(/,/g, '.');
 
-            // Solo permitir un punto decimal
+            // Asegurarse de que solo haya un punto decimal (si el usuario escribe múltiples comas/puntos)
             const parts = cleanValue.split('.');
             if (parts.length > 2) {
                 cleanValue = parts[0] + '.' + parts.slice(1).join('');
             }
 
-            // Convertir a float o mantener como string si no es un número válido aún o está vacío
+            // Convertir a float. Si no es un número válido (ej. solo "-"), o está vacío, mantener como string vacío
             const numValue = cleanValue === '' ? '' : parseFloat(cleanValue);
 
             setFormData(prev => ({
                 ...prev,
-                [name]: numValue // Almacena el número o un string vacío si la entrada es inválida/vacía
+                [name]: numValue // Almacena el número (ej. 1.50) o un string vacío si la entrada es inválida/vacía
             }));
         } else {
             setFormData(prev => ({
@@ -104,12 +114,10 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
         }
     };
 
-    // ✅ Nueva función para manejar el foco en el input
     const handleFocus = (e) => {
         setEditingField(e.target.name);
     };
 
-    // ✅ Nueva función para manejar la pérdida de foco en el input
     const handleBlur = () => {
         setEditingField(null);
     };
@@ -128,6 +136,7 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
         }
 
         // Validate numerical fields (deducible, gasto_max_bolsillo are optional, valor_prima is required)
+        // Check if value is not an empty string AND (is not a number OR is negative)
         if (formData.deducible !== '' && (isNaN(formData.deducible) || parseFloat(formData.deducible) < 0)) {
             setError(`❌ El campo 'Deducible' debe ser un número positivo.`);
             return;
@@ -136,13 +145,15 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
             setError(`❌ El campo 'Gasto Máximo de Bolsillo' debe ser un número positivo.`);
             return;
         }
-        if (isNaN(formData.valor_prima) || parseFloat(formData.valor_prima) <= 0) { // Prima must be a positive number
+        // Valor de la prima es obligatorio y debe ser un número positivo
+        if (isNaN(formData.valor_prima) || parseFloat(formData.valor_prima) <= 0) {
             setError(`❌ El campo 'Valor de la Prima' debe ser un número positivo.`);
             return;
         }
 
 
         try {
+            // Asegúrate de enviar null a la DB si los campos opcionales están vacíos
             const dataToSend = {
                 usuario_id: userId,
                 aseguradora: formData.aseguradora,
@@ -153,7 +164,7 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
                 valor_prima: parseFloat(formData.valor_prima)
             };
 
-            const response = await axios.post('http://10.255.255.85:3001/api/planes_salud', dataToSend);
+            const response = await axios.post(`${API_BASE_URL}/api/planes_salud`, dataToSend); 
             setMessage(response.data.message);
 
             if (onPlanSaludUpdated) {
@@ -172,10 +183,12 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
     const getInputValue = (fieldName) => {
         const value = formData[fieldName];
         // Si el campo está siendo editado, muestra el valor tal como está en el estado (sin formatear)
+        // Esto permite al usuario editar el número sin preocuparse por el formato mientras escribe.
         if (editingField === fieldName) {
-            return value;
+            // Asegúrate de que se muestre el punto como coma para el usuario si es un número válido
+            return value !== '' && !isNaN(value) ? String(value).replace(/\./g, ',') : '';
         }
-        // Si el campo no está vacío, lo formatea para la visualización
+        // Si el campo no está vacío, lo formatea para la visualización con separadores de miles y coma decimal.
         if (value !== '' && !isNaN(value)) {
             return numberFormatter.format(value);
         }
@@ -237,13 +250,12 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
                         <input
                             type="text"
                             name="deducible"
-                            // ✅ Usa la nueva función getInputValue
                             value={getInputValue('deducible')}
                             onChange={handleChange}
-                            onFocus={handleFocus} // ✅ Añadir onFocus
-                            onBlur={handleBlur}   // ✅ Añadir onBlur
-                            placeholder="0.00" 
-                            inputMode="decimal" // Más apropiado para números con decimales
+                            onFocus={handleFocus}
+                            onBlur={handleBlur}
+                            placeholder="0,00" 
+                            inputMode="decimal"
                         />
                     </div>
 
@@ -252,12 +264,11 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
                         <input
                             type="text"
                             name="gasto_max_bolsillo"
-                            // ✅ Usa la nueva función getInputValue
                             value={getInputValue('gasto_max_bolsillo')}
                             onChange={handleChange}
-                            onFocus={handleFocus} // ✅ Añadir onFocus
-                            onBlur={handleBlur}   // ✅ Añadir onBlur
-                            placeholder="0.00"
+                            onFocus={handleFocus}
+                            onBlur={handleBlur}
+                            placeholder="0,00" 
                             inputMode="decimal"
                         />
                     </div>
@@ -267,13 +278,12 @@ function PlanSaludForm({ userId, onPlanSaludCompleted, onPlanSaludUpdated }) {
                         <input
                             type="text"
                             name="valor_prima"
-                            // ✅ Usa la nueva función getInputValue
                             value={getInputValue('valor_prima')}
                             onChange={handleChange}
-                            onFocus={handleFocus} // ✅ Añadir onFocus
-                            onBlur={handleBlur}   // ✅ Añadir onBlur
+                            onFocus={handleFocus}
+                            onBlur={handleBlur}
                             required
-                            placeholder="0.00"
+                            placeholder="0,00" 
                             inputMode="decimal"
                         />
                     </div>

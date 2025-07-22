@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 // Helper function to format currency
 const formatCurrency = (value) => {
     if (value === '' || isNaN(value)) {
@@ -49,11 +51,11 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
             if (userId) {
                 try {
                     // Cargar dependientes
-                    const dependientesRes = await axios.get(`http://10.255.255.85:3001/api/${userId}/dependientes`);
+                    const dependientesRes = await axios.get(`${API_BASE_URL}/api/${userId}/dependientes`);
                     setDependientes(dependientesRes.data);
 
                     // Cargar ingresos existentes para el usuario principal y sus dependientes
-                    const ingresosRes = await axios.get(`http://10.255.255.85:3001/api/ingresos/Usuario/${userId}`);
+                    const ingresosRes = await axios.get(`${API_BASE_URL}/api/ingresos/Usuario/${userId}`);
                     const allExistingIngresos = ingresosRes.data;
 
                     // Precargar los ingresos del usuario principal si existen
@@ -217,7 +219,7 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
         console.log('Ingresos a enviar al backend:', allIngresosToSubmit);
 
         try {
-            const currentIngresosRes = await axios.get(`http://10.255.255.85:3001/api/ingresos/Usuario/${userId}`);
+            const currentIngresosRes = await axios.get(`${API_BASE_URL}/api/ingresos/Usuario/${userId}`);
             const existingIngresos = currentIngresosRes.data;
 
             for (const existingIng of existingIngresos) {
@@ -225,7 +227,7 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                     subIng => subIng.tipo_entidad === existingIng.tipo_entidad && subIng.entidad_id === existingIng.entidad_id
                 );
                 if (!foundInSubmit) {
-                    await axios.delete(`http://10.255.255.85:3001/api/ingresos/${existingIng.id}`);
+                    await axios.delete(`${API_BASE_URL}/api/ingresos/${existingIng.id}`);
                 }
             }
 
@@ -235,9 +237,9 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                 );
 
                 if (existingEntry) {
-                    await axios.put(`http://10.255.255.85:3001/api/ingresos/${existingEntry.id}`, ingreso);
+                    await axios.put(`${API_BASE_URL}/api/ingresos/${existingEntry.id}`, ingreso);
                 } else {
-                    await axios.post('http://10.255.255.85:3001/api/ingresos', ingreso);
+                    await axios.post(`${API_BASE_URL}/api/ingresos`, ingreso); 
                 }
             }
 

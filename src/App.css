@@ -220,12 +220,12 @@ h4 {
 
 /* Estilo para el form-field que contiene el toggle switch (para que ocupe todo el ancho) */
 /* Esto ya lo habíamos puesto, pero lo reitero para asegurar que se aplica bien al checkbox */
-.accordion-content .form-field:first-child {
-    flex: 1 1 100%; /* Ocupa el 100% del ancho para una fila completa */
-}
+/* .accordion-content .form-field:first-child {
+    flex: 1 1 100%;
+} */ /* Keep this commented or remove if you use the form-field.full-width for this as well */
 
 /* Estilo para campos de solo lectura */
-.accordion-content .form-field .read-only-input {
+.accordion-content .read-only-input { /* Changed from .accordion-content .form-field .read-only-input */
     background-color: #f8f9fa; /* Un gris muy claro */
     border-color: #e9ecef; /* Un borde ligeramente diferente */
     cursor: not-allowed; /* Indica que no es editable */
@@ -285,37 +285,175 @@ h4 {
     border: 1px solid #f5c6cb;
 }
 
+/* --- Nuevos estilos para PagoForm (Card Section) --- */
 
-.card-logo-container {
-    margin-top: 10px;
-    height: 30px; /* Ajusta la altura según tus imágenes */
+/* Contenedor general del formulario de pago, para darle un fondo blanco y sombra */
+.form-container {
+    max-width: 800px; /* Ajusta el ancho según sea necesario */
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-container h3 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Grid layout for form fields within PagoForm */
+.form-container .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive 2-column layout */
+    gap: 20px; /* Space between fields */
+}
+
+/* Specific styles for card number field and logo within PagoForm */
+.form-container .form-field.full-width {
+    grid-column: 1 / -1; /* Make this field span all columns */
+}
+
+/* For the card number input where the card logo appears inside */
+.form-container .form-field input[name="cardNumberFull"] {
+    position: relative;
+    padding-right: 60px; /* Make space for the logo */
+}
+
+.form-container .form-field input[name="cardNumberFull"] + .card-logo-container {
+    position: absolute;
+    right: 30px; /* Position relative to the parent form-field */
+    top: 50%;
+    transform: translateY(-50%);
+    height: 30px; /* Ensure logo height is consistent */
     display: flex;
     align-items: center;
 }
 
-.card-logo {
-    max-height: 100%;
+.form-container .card-logo-container .card-logo {
+    height: 25px; /* Adjust size as needed */
     width: auto;
-    transition: all 0.3s ease-in-out; /* Animación suave al cambiar */
-    opacity: 0.8;
+    vertical-align: middle;
+    opacity: 0.9;
 }
 
-.card-logo:hover {
-    opacity: 1;
+/* Style for the dynamic card type display below the form (separate section) */
+.card-logo-display-container {
+    grid-column: 1 / -1; /* Make it span full width */
+    display: flex;
+    align-items: center;
+    min-height: 40px; /* Ensure space even if no logo */
+    margin-top: 10px;
+    padding: 10px 0;
+    border-top: 1px solid #eee; /* Separator for clarity */
 }
 
-/* Opcional: si quieres un efecto más dinámico */
-.card-logo-container img {
-    animation: fadeIn 0.5s ease-out;
+.card-logo-display-container .card-logo {
+    height: 150px; /* Slightly larger for display */
+    width: auto;
+    margin-right: 10px;
+    opacity: 1; /* Full opacity for display */
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-5px); }
-    to { opacity: 1; transform: translateY(0); }
+.card-logo-display-container .help-text {
+    margin-top: 0; /* Remove top margin for alignment */
+    font-size: 0.9em;
+    color: #555;
 }
 
-.help-text {
-    font-size: 0.8em;
-    color: #666;
+
+/* Grouping for horizontal fields (like month and year) within PagoForm */
+.form-container .form-field-group.horizontal-group {
+    display: flex;
+    gap: 15px; /* Space between month and year inputs */
+    grid-column: 1 / -1; /* Make this group span all columns */
+}
+
+.form-container .horizontal-group .form-field.half-width {
+    flex: 1; /* Each child takes equal space */
+    margin-bottom: 0; /* Remove individual margin if handled by group gap */
+}
+
+/* Adjustments for labels and inputs in PagoForm */
+.form-container .form-field label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.95em;
+}
+
+.form-container .form-field input[type="text"],
+.form-container .form-field input[type="password"],
+.form-container .form-field select {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1em;
+    color: #343a40;
+}
+
+/* General button style for PagoForm */
+.form-container button[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 500;
+    margin-top: 25px; /* More space above the button */
+    width: auto; /* Adjust width to content for a more compact button */
+    display: block; /* Ensures it takes its own line */
+    margin-left: auto;
+    margin-right: auto; /* Center the button */
+    grid-column: 1 / -1; /* Span all columns if inside a grid directly */
+}
+
+.form-container button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+.form-container button[type="submit"]:active {
+    transform: translateY(0);
+}
+.form-container button[type="submit"]:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Help text adjustments */
+.form-container .help-text {
+    font-size: 0.85em; /* Slightly larger than generic help-text */
+    color: #777;
     margin-top: 5px;
 }
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .form-container .form-grid {
+        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    }
+    .main-content {
+        margin-left: 20px; /* Adjust margin for smaller screens if sidebar collapses */
+        margin-right: 20px;
+    }
+    .form-container .form-field.full-width,
+    .form-container .form-field-group.horizontal-group,
+    .card-logo-display-container {
+        grid-column: auto; /* Remove span on smaller screens */
+    }
+    .form-container .horizontal-group {
+        flex-direction: column; /* Stack month/year vertically on very small screens */
+    }
+}
+
+
+/* frontend/src/App.css */
+
+/* ... (todo tu CSS existente) ... */
+
+/* --- Nuevos estilos para la tarjeta de crédito y campos de fecha --- */
+

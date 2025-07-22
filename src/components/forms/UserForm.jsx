@@ -5,6 +5,8 @@ import { calculateAge } from '../../utils/dateCalculations';
 import LocationSelector from './LocationSelector';
 import FormStatusIndicator from '../statusIndicators/FormStatusIndicator';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 // Añadir onUserUpdated a las props
 function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }) {
     const [formData, setFormData] = useState({
@@ -13,7 +15,6 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
         apellidos: '',
         sexo: '',
         fecha_nacimiento: '',
-        estado_cobertura: '',
         social: '',
         estatus_migratorio: '',
         tipo_vivienda: '',
@@ -26,8 +27,6 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
         phone_1: '',
         phone_2: '', // Campo opcional
         origen_venta: '',
-        referido: '',
-        base: '',
         pregunta_seguridad: '',
         respuesta_seguridad: ''
     });
@@ -51,10 +50,10 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
     // Define TODOS los campos obligatorios EXCEPTO phone_2
     const requiredFields = [
         'nombres', 'apellidos', 'sexo', 'fecha_nacimiento',
-        'estado_cobertura', 'social', 'estatus_migratorio',
+        'social', 'estatus_migratorio',
         'tipo_vivienda', 'direccion', 'codigo_postal',
         'correo_electronico', 'phone_1',
-        'origen_venta', 'referido', 'base',
+        'origen_venta',
         'pregunta_seguridad', 'respuesta_seguridad'
     ];
 
@@ -83,9 +82,9 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             // Resetear el formulario si no hay initialData (para un nuevo registro)
             setFormData({
                 solicita_cobertura: false, nombres: '', apellidos: '', sexo: '',
-                fecha_nacimiento: '', estado_cobertura: '', social: '', estatus_migratorio: '',
+                fecha_nacimiento: '', social: '', estatus_migratorio: '',
                 tipo_vivienda: '', direccion: '', codigo_postal: '', correo_electronico: '',
-                phone_1: '', phone_2: '', origen_venta: '', referido: '', base: '',
+                phone_1: '', phone_2: '', origen_venta: '',
                 pregunta_seguridad: '', respuesta_seguridad: '',
                 ciudad: '', estado: '', condado: ''
             });
@@ -129,10 +128,20 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+
+        if (name === 'social') {
+            // Eliminar cualquier cosa que no sea un dígito
+            const cleanedValue = value.replace(/\D/g, '');
+            setFormData(prev => ({
+                ...prev,
+                [name]: cleanedValue
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            }));
+        }
     };
 
     const handleLocationChange = (location) => {
@@ -156,13 +165,19 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             return;
         }
 
+        // Validación específica para el número social (9 dígitos)
+        if (formData.social.length !== 9 || !/^\d{9}$/.test(formData.social)) {
+            setError('❌ El número social debe contener exactamente 9 dígitos.');
+            return;
+        }
+
         try {
             let response;
             const dataToSend = { ...formData };
 
             if (userIdForUpdate) {
                 // Hacemos un PUT para actualizar
-                response = await axios.put(`http://10.255.255.85:3001/api/usuarios/${userIdForUpdate}`, dataToSend);
+                response = await axios.put(`${API_BASE_URL}/api/usuarios/${userIdForUpdate}`, dataToSend);
                 setMessage('✅ Usuario actualizado con éxito.');
                 // Llama al callback para notificar al padre que la actualización fue exitosa
                 if (onUserUpdated) {
@@ -170,7 +185,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                 }
             } else {
                 // Hacemos un POST para crear
-                response = await axios.post('http://10.255.255.85:3001/api/usuarios', dataToSend);
+                response = await axios.post(`${API_BASE_URL}/api/usuarios`, dataToSend);
                 setMessage('✅ Usuario creado con éxito. ID: ' + response.data.userId);
                 // Llama al callback para el nuevo usuario
                 if (onUserCreated) {
@@ -179,9 +194,9 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                 // Resetea el formulario solo si es una creación de usuario nuevo
                 setFormData({
                     solicita_cobertura: false, nombres: '', apellidos: '', sexo: '',
-                    fecha_nacimiento: '', estado_cobertura: '', social: '', estatus_migratorio: '',
+                    fecha_nacimiento: '', social: '', estatus_migratorio: '',
                     tipo_vivienda: '', direccion: '', codigo_postal: '', correo_electronico: '',
-                    phone_1: '', phone_2: '', origen_venta: '', referido: '', base: '',
+                    phone_1: '', phone_2: '', origen_venta: '',
                     pregunta_seguridad: '', respuesta_seguridad: '',
                     ciudad: '', estado: '', condado: ''
                 });
@@ -260,13 +275,17 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                 </div>
 
                 <div className="form-field">
-                    <label>Estado de Cobertura:<span className="required-star">*</span></label>
-                    <input type="text" name="estado_cobertura" value={formData.estado_cobertura} onChange={handleChange} />
-                </div>
-
-                <div className="form-field">
                     <label>Número Social:<span className="required-star">*</span></label>
-                    <input type="text" name="social" value={formData.social} onChange={handleChange} maxLength="20" />
+                    <input
+                        type="text"
+                        name="social"
+                        value={formData.social}
+                        onChange={handleChange}
+                        maxLength="9" // Limita a 9 caracteres en el input
+                        pattern="\d{9}" // Patrón para asegurar solo 9 dígitos (para navegadores que lo soporten)
+                        title="El número social debe contener exactamente 9 dígitos." // Mensaje de ayuda
+                        inputMode="numeric" // Optimizado para teclados numéricos en móviles
+                    />
                 </div>
 
                 <div className="form-field">
@@ -324,17 +343,12 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
 
                 <div className="form-field">
                     <label>Origen de la Venta:<span className="required-star">*</span></label>
-                    <input type="text" name="origen_venta" value={formData.origen_venta} onChange={handleChange} />
-                </div>
-
-                <div className="form-field">
-                    <label>Referido:<span className="required-star">*</span></label>
-                    <input type="text" name="referido" value={formData.referido} onChange={handleChange} />
-                </div>
-
-                <div className="form-field">
-                    <label>Base:<span className="required-star">*</span></label>
-                    <input type="text" name="base" value={formData.base} onChange={handleChange} />
+                    <select name="origen_venta" value={formData.origen_venta} onChange={handleChange} required>
+                        <option value="">Selecciona una opción</option>
+                        <option value="Leard">Leard</option>
+                        <option value="Referido">Referido</option>
+                        <option value="Base">Base</option>
+                    </select>
                 </div>
 
                 <div className="form-field">

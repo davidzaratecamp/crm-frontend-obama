@@ -1,6 +1,7 @@
-// frontend/src/components/forms/PagoForm.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 // Importa las imágenes de los logos de las tarjetas
 import visaLogo from '/images/visa.png'; // Asegúrate de que la ruta sea correcta
 import mastercardLogo from '/images/mastercard.png'; // Asegúrate de que la ruta sea correcta
@@ -10,9 +11,9 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
     const [formData, setFormData] = useState({
         cardNumberFull: '', // Temporal: para la detección del tipo de tarjeta
         ultimos_4_digitos_tarjeta: '',
-        token_pago: '',
-        fecha_expiracion_mes: '',
-        fecha_expiracion_ano: ''
+        cvv: '', // ✅ Nuevo campo para CVV
+        fecha_expiracion_mes: '', // Cambiado de 'mesExpiracion'
+        fecha_expiracion_ano: '', // Cambiado de 'anoExpiracion'
     });
     const [cardType, setCardType] = useState('unknown'); // 'visa', 'mastercard', 'unknown'
     const [message, setMessage] = useState('');
@@ -39,22 +40,23 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
         const fetchPagoInfo = async () => {
             if (userId) {
                 try {
-                    const res = await axios.get(`http://10.255.255.85:3001/api/usuario/${userId}`);
+                    const res = await axios.get(`${API_BASE_URL}/api/usuario/${userId}`);
                     if (res.data.length > 0) {
                         const pagoData = res.data[0];
                         setFormData({
                             cardNumberFull: '', // No precargamos el número completo por seguridad
                             ultimos_4_digitos_tarjeta: pagoData.ultimos_4_digitos_tarjeta || '',
-                            token_pago: pagoData.token_pago || '',
+                            cvv: '', // No precargamos CVV por seguridad
                             fecha_expiracion_mes: String(pagoData.fecha_expiracion_mes).padStart(2, '0') || '',
                             fecha_expiracion_ano: pagoData.fecha_expiracion_ano || ''
                         });
-                        setCardType(pagoData.ultimos_4_digitos_tarjeta ? 'unknown' : 'unknown');
+                        // Actualizar el tipo de tarjeta si hay últimos 4 dígitos cargados
+                        setCardType(pagoData.ultimos_4_digitos_tarjeta ? detectCardType(pagoData.ultimos_4_digitos_tarjeta) : 'unknown');
                     } else {
                         setFormData({
                             cardNumberFull: '',
                             ultimos_4_digitos_tarjeta: '',
-                            token_pago: '',
+                            cvv: '',
                             fecha_expiracion_mes: '',
                             fecha_expiracion_ano: ''
                         });
@@ -83,6 +85,12 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
                 ultimos_4_digitos_tarjeta: cleanValue.slice(-4)
             }));
             setCardType(detectCardType(cleanValue));
+        } else if (name === 'cvv') {
+            const cleanValue = value.replace(/\D/g, '').slice(0, 3);
+            setFormData(prev => ({
+                ...prev,
+                [name]: cleanValue
+            }));
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -102,25 +110,19 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
         }
     };
 
-    // ✅ Función para generar un token único simulado
-    const generateUniqueSimulatedToken = () => {
-        // Usa una combinación de la fecha actual y un número aleatorio para mayor unicidad
-        return `SIMULADO_${Date.now()}_${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
         setError('');
 
-        const { cardNumberFull, ultimos_4_digitos_tarjeta, token_pago, fecha_expiracion_mes, fecha_expiracion_ano } = formData;
+        const { cardNumberFull, ultimos_4_digitos_tarjeta, cvv, fecha_expiracion_mes, fecha_expiracion_ano } = formData;
 
         if (!cardNumberFull || cardNumberFull.length < 13 || !/^\d+$/.test(cardNumberFull)) {
             setError('❌ Por favor, ingresa un número de tarjeta válido.');
             return;
         }
-        if (!token_pago || token_pago.trim() === '') {
-            setError('❌ El token de pago es obligatorio.');
+        if (!cvv || !/^\d{3}$/.test(cvv)) {
+            setError('❌ El CVV es obligatorio y debe tener 3 dígitos numéricos.');
             return;
         }
         if (!fecha_expiracion_mes || !fecha_expiracion_ano) {
@@ -142,12 +144,12 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
             const dataToSend = {
                 usuario_id: userId,
                 ultimos_4_digitos_tarjeta: ultimos_4_digitos_tarjeta,
-                token_pago: token_pago,
+                cvv: cvv,
                 fecha_expiracion_mes: selectedMonth,
                 fecha_expiracion_ano: selectedYear
             };
 
-            const response = await axios.post(`http://10.255.255.85:3001/api`, dataToSend);
+            const response = await axios.post(`${API_BASE_URL}/api`, dataToSend);
             setMessage(response.data.message);
 
             if (onPagoUpdated) {
@@ -168,10 +170,12 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
             {error && <p className="form-messages error">{error}</p>}
             <form onSubmit={handleSubmit}>
                 <div className="form-grid">
-                    <div className="form-field">
-                        <label>Número de Tarjeta:</label>
+                    {/* Número de Tarjeta */}
+                    <div className="form-field full-width"> {/* Added full-width for clarity if grid has multiple columns */}
+                        <label htmlFor="cardNumberFull">Número de Tarjeta:</label>
                         <input
                             type="password"
+                            id="cardNumberFull"
                             name="cardNumberFull"
                             value={formData.cardNumberFull}
                             onChange={handleChange}
@@ -180,15 +184,18 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
                             maxLength="19"
                             autoComplete="cc-number"
                         />
+                         {/* Moved card logo inside the card number field for better visual grouping */}
                         <div className="card-logo-container">
                             <img src={getCardLogo()} alt={`${cardType} logo`} className="card-logo" />
                         </div>
                     </div>
 
+                    {/* Últimos 4 Dígitos */}
                     <div className="form-field">
-                        <label>Últimos 4 Dígitos:</label>
+                        <label htmlFor="ultimos_4_digitos_tarjeta">Últimos 4 Dígitos:</label>
                         <input
                             type="text"
+                            id="ultimos_4_digitos_tarjeta"
                             name="ultimos_4_digitos_tarjeta"
                             value={formData.ultimos_4_digitos_tarjeta}
                             readOnly
@@ -197,56 +204,68 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
                          <p className="help-text">Estos son los únicos dígitos almacenados por seguridad.</p>
                     </div>
 
+                    {/* CVV */}
                     <div className="form-field">
-                        <label>Token de Pago:<span className="required-star">*</span></label>
+                        <label htmlFor="cvv">CVV:<span className="required-star">*</span></label>
                         <input
                             type="text"
-                            name="token_pago"
-                            value={formData.token_pago}
+                            id="cvv"
+                            name="cvv"
+                            value={formData.cvv}
                             onChange={handleChange}
-                            placeholder="Token del procesador de pagos (ej: tok_xyz)"
+                            placeholder="Ej: 123"
+                            inputMode="numeric"
+                            maxLength="3"
+                            pattern="[0-9]{3}"
                             required
-                            // La lógica de deshabilitar el campo si ya hay un token persistirá
-                            disabled={!!formData.token_pago && formData.token_pago.startsWith('SIMULADO_')}
                         />
-                        <p className="help-text">Este campo es normalmente generado por un servicio de pago seguro.</p>
-                        <button
-                            type="button"
-                            // ✅ Llama a la nueva función para generar un token único
-                            onClick={() => setFormData(prev => ({ ...prev, token_pago: generateUniqueSimulatedToken() }))}
-                        >
-                            Generar Token Simulado
-                        </button>
+                        <p className="help-text">Código de seguridad de 3 dígitos al reverso de tu tarjeta.</p>
                     </div>
 
-                    <div className="form-field">
-                        <label>Mes de Expiración:<span className="required-star">*</span></label>
-                        <select
-                            name="fecha_expiracion_mes"
-                            value={formData.fecha_expiracion_mes}
-                            onChange={handleChange}
-                            required
-                        >
-                            <option value="">Mes</option>
-                            {months.map(month => (
-                                <option key={month} value={month}>{month}</option>
-                            ))}
-                        </select>
+                    {/* Mes y Año de Expiración - Ahora en una misma fila si el grid lo permite, o con un contenedor flex */}
+                    <div className="form-field-group horizontal-group"> {/* New container for grouping */}
+                        <div className="form-field half-width"> {/* Adjusted width for two fields in one row */}
+                            <label htmlFor="fecha_expiracion_mes">Mes Exp.:<span className="required-star">*</span></label>
+                            <select
+                                id="fecha_expiracion_mes"
+                                name="fecha_expiracion_mes"
+                                value={formData.fecha_expiracion_mes}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">MM</option>
+                                {months.map(month => (
+                                    <option key={month} value={month}>{month}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-field half-width"> {/* Adjusted width for two fields in one row */}
+                            <label htmlFor="fecha_expiracion_ano">Año Exp.:<span className="required-star">*</span></label>
+                            <select
+                                id="fecha_expiracion_ano"
+                                name="fecha_expiracion_ano"
+                                value={formData.fecha_expiracion_ano}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">AA</option>
+                                {years.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="form-field">
-                        <label>Año de Expiración:<span className="required-star">*</span></label>
-                        <select
-                            name="fecha_expiracion_ano"
-                            value={formData.fecha_expiracion_ano}
-                            onChange={handleChange}
-                            required
-                        >
-                            <option value="">Año</option>
-                            {years.map(year => (
-                                <option key={year} value={year}>{year}</option>
-                            ))}
-                        </select>
+                    {/* Tipo de Tarjeta - This field needs to be handled differently if it's meant for display only */}
+                    {/* Assuming cardType is derived from cardNumberFull, it shouldn't be an input field for user entry */}
+                    <div className="form-field full-width">
+                        <label>Tipo de Tarjeta:</label>
+                        <div className="card-logo-display-container"> {/* Renamed for clarity */}
+                            {cardType === 'visa' && <img src={visaLogo} alt="Visa" className="card-logo" />}
+                            {cardType === 'mastercard' && <img src={mastercardLogo} alt="Mastercard" className="card-logo" />}
+                            {cardType === 'unknown' && formData.cardNumberFull === '' && <span className="help-text">Ingresa el número de tarjeta para ver el tipo</span>}
+                            {cardType === 'unknown' && formData.cardNumberFull !== '' && <span className="help-text">Tipo de tarjeta desconocido</span>}
+                        </div>
                     </div>
                 </div>
 
