@@ -285,13 +285,14 @@ h4 {
     border: 1px solid #f5c6cb;
 }
 
-/* --- Nuevos estilos para PagoForm (Card Section) --- */
+---
 
-/* Contenedor general del formulario de pago, para darle un fondo blanco y sombra */
+
 .form-container {
-    max-width: 800px; /* Ajusta el ancho según sea necesario */
-    margin: 20px auto;
-    padding: 20px;
+    /* Removed width and margin: auto; to allow it to expand to parent's width */
+    margin-top: 20px; /* Keep top margin */
+    margin-bottom: 20px; /* Keep bottom margin */
+    padding: 30px; /* Increased padding to match horizontal spacing of main-content more closely */
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #fff;
@@ -449,11 +450,3 @@ h4 {
         flex-direction: column; /* Stack month/year vertically on very small screens */
     }
 }
-
-
-/* frontend/src/App.css */
-
-/* ... (todo tu CSS existente) ... */
-
-/* --- Nuevos estilos para la tarjeta de crédito y campos de fecha --- */
-

@@ -1,0 +1,230 @@
+/* Variables de color para fácil personalización */
+:root {
+    --eup-primary-color: #007bff; /* Azul vibrante */
+    --eup-secondary-color: #6c757d; /* Gris para textos secundarios */
+    --eup-success-color: #28a745; /* Verde para éxito */
+    --eup-danger-color: #dc3545; /* Rojo para errores */
+    --eup-border-color: #ced4da; /* Color de borde de input */
+    --eup-background-light: #f8f9fa; /* Fondo claro */
+    --eup-text-dark: #343a40; /* Texto oscuro */
+    --eup-shadow-light: rgba(0, 0, 0, 0.08); /* Sombra ligera */
+}
+
+.eup-form-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--eup-shadow-light);
+    /* Eliminado: max-width: 800px; */
+    /* Eliminado: margin: 40px auto; */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--eup-text-dark);
+}
+
+.eup-form-container h3 {
+    text-align: center;
+    color: var(--eup-primary-color);
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+.eup-form-messages {
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.eup-form-messages.success {
+    background-color: #d4edda;
+    color: var(--eup-success-color);
+    border-color: #c3e6cb;
+}
+
+.eup-form-messages.error {
+    background-color: #f8d7da;
+    color: var(--eup-danger-color);
+    border-color: #f5c6cb;
+}
+
+.eup-form-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+@media (min-width: 768px) {
+    .eup-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.eup-form-field {
+    margin-bottom: 15px;
+}
+
+.eup-form-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--eup-text-dark);
+    font-size: 0.95em;
+}
+
+.eup-form-field .required-star {
+    color: var(--eup-danger-color);
+    margin-left: 4px;
+}
+
+.eup-form-field input[type="file"],
+.eup-form-field textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--eup-border-color);
+    border-radius: 6px;
+    font-size: 1em;
+    color: var(--eup-text-dark);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box; /* Asegura que padding no aumente el tamaño total */
+}
+
+.eup-form-field input[type="file"]::file-selector-button {
+    background-color: var(--eup-primary-color);
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.eup-form-field input[type="file"]::file-selector-button:hover {
+    background-color: #0056b3; /* Un tono más oscuro */
+}
+
+
+.eup-form-field textarea {
+    resize: vertical; /* Permite redimensionar verticalmente */
+    min-height: 90px;
+}
+
+.eup-form-field input:focus,
+.eup-form-field textarea:focus {
+    border-color: var(--eup-primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.eup-file-name-display {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--eup-secondary-color);
+    word-break: break-all; /* Para nombres de archivo largos */
+}
+
+.eup-help-text {
+    font-size: 0.85em;
+    color: var(--eup-secondary-color);
+    margin-top: 5px;
+}
+
+.eup-submit-button {
+    display: block;
+    width: 100%;
+    padding: 15px 25px;
+    background-color: var(--eup-primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 20px;
+}
+
+.eup-submit-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.eup-submit-button:active {
+    transform: translateY(0);
+}
+
+.eup-existing-evidences {
+    margin-top: 30px;
+    border-top: 1px solid var(--eup-border-color);
+    padding-top: 25px;
+}
+
+.eup-existing-evidences h4 {
+    color: var(--eup-primary-color);
+    margin-bottom: 18px;
+    font-size: 1.4em;
+    text-align: center;
+    font-weight: 600;
+}
+
+.eup-existing-evidences ul {
+    list-style: none;
+    padding: 0;
+}
+
+.eup-existing-evidences li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background-color: var(--eup-background-light);
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+}
+
+.eup-existing-evidences li span {
+    flex-grow: 1;
+    margin-right: 10px;
+    color: var(--eup-text-dark);
+    word-break: break-word; /* Rompe palabras largas */
+}
+
+.eup-existing-evidences li a {
+    color: var(--eup-primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 10px;
+    white-space: nowrap; /* Evita que "Ver" se rompa */
+}
+
+.eup-existing-evidences li a:hover {
+    text-decoration: underline;
+}
+
+.eup-delete-button {
+    background-color: var(--eup-danger-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-left: 10px; /* Separación del enlace "Ver" */
+    white-space: nowrap; /* Evita que el botón se rompa */
+}
+
+.eup-delete-button:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+.eup-delete-button:active {
+    transform: translateY(0);
+}

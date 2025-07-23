@@ -13,30 +13,28 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         solicita_cobertura: false,
         nombres: '',
         apellidos: '',
-        sexo: '', // Cambiado a vacío
-        direccion: '',
+        sexo: '',
+        // direccion: '', // ¡ELIMINADO!
         fecha_nacimiento: '',
-        social: '', // Mantener como string para permitir el control de 9 dígitos
-        estatus_migratorio: '', // Cambiado a vacío
-        medicare_medicaid: false,
+        social: '',
+        estatus_migratorio: '',
+        medicare_medicaid: false, // Ahora maneja la lógica de exclusión mutua
         estado: '',
         condado: '',
         ciudad: ''
     });
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
-    const [dependientesList, setDependientesList] = useState([]); // Lista de dependientes ya añadidos
-    const [editingDependienteId, setEditingDependienteId] = useState(null); // ID del dependiente que se está editando
+    const [dependientesList, setDependientesList] = useState([]);
+    const [editingDependienteId, setEditingDependienteId] = useState(null);
     const [age, setAge] = useState(null);
 
-    // Estado local para la ubicación, inicializado desde formData/initialData
     const [currentLocation, setCurrentLocation] = useState({
         estado: formData.estado,
         condado: formData.condado,
         ciudad: formData.ciudad
     });
 
-    // Opciones para el desplegable de Estatus Migratorio
     const estatusMigratorioOptions = [
         "RESIDENTE", "CIUDADANO", "PERMISO DE TRABAJO", "PASAPORTE",
         "VISA DE TRABAJO", "ASILO/REFUGIADO", "ASILO/POLÍTICO",
@@ -46,10 +44,10 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     // Define los campos requeridos para un dependiente
     const requiredFields = [
         'parentesco', 'nombres', 'apellidos', 'sexo', 'fecha_nacimiento',
-        'estatus_migratorio', 'direccion'
-        // 'social' no está aquí, lo que significa que no es un campo obligatorio para el llenado del formulario.
-        // Si necesitas que social sea obligatorio, añádelo aquí y también el atributo 'required' al input.
+        'estatus_migratorio'
+        // 'direccion' ya no es requerido
     ];
+    // Ajustamos el total de campos requeridos, ya que 'direccion' se elimina
     const totalRequiredFields = requiredFields.length + 3; // +3 para Estado, Condado, Ciudad
 
     const [completedRequiredFields, setCompletedRequiredFields] = useState(0);
@@ -58,10 +56,9 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     useEffect(() => {
         if (initialData && initialData.length > 0) {
             setDependientesList(initialData);
-            // La lógica para editar un dependiente específico se manejará al hacer clic en 'Editar'
         } else {
             setDependientesList([]);
-            clearForm(); // Resetea el formulario completamente
+            clearForm();
         }
     }, [initialData]);
 
@@ -74,6 +71,28 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         setAge(calculatedAge);
     }, [formData.fecha_nacimiento]);
 
+    // --- NUEVO EFECTO: Lógica para Medicare/Medicaid vs Solicita Cobertura ---
+    useEffect(() => {
+        // Si medicare_medicaid se marca a true, solicita_cobertura se pone a false
+        if (formData.medicare_medicaid && formData.solicita_cobertura) {
+            setFormData(prev => ({
+                ...prev,
+                solicita_cobertura: false
+            }));
+        }
+    }, [formData.medicare_medicaid]);
+
+    // --- NUEVO EFECTO: Lógica para Solicita Cobertura vs Medicare/Medicaid ---
+    useEffect(() => {
+        // Si solicita_cobertura se marca a true, medicare_medicaid se pone a false
+        if (formData.solicita_cobertura && formData.medicare_medicaid) {
+            setFormData(prev => ({
+                ...prev,
+                medicare_medicaid: false
+            }));
+        }
+    }, [formData.solicita_cobertura]);
+
 
     const countCompletedFields = () => {
         let completed = 0;
@@ -82,6 +101,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 completed++;
             }
         });
+        // La dirección ya no es un campo requerido para contar
         if (formData.estado && formData.estado !== '') completed++;
         if (formData.condado && formData.condado !== '') completed++;
         if (formData.ciudad && formData.ciudad !== '') completed++;
@@ -93,14 +113,40 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         const { name, value, type, checked } = e.target;
 
         if (name === 'social') {
-            // Eliminar cualquier cosa que no sea un dígito
             const cleanedValue = value.replace(/\D/g, '');
-            // Limitar a 9 dígitos
             const limitedValue = cleanedValue.slice(0, 9);
             setFormData(prev => ({
                 ...prev,
                 [name]: limitedValue
             }));
+        } else if (name === 'medicare_medicaid') {
+            // Si se marca medicare_medicaid, desmarcar solicita_cobertura
+            if (checked) {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: checked,
+                    solicita_cobertura: false // Desmarca solicita_cobertura
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: checked
+                }));
+            }
+        } else if (name === 'solicita_cobertura') {
+            // Si se marca solicita_cobertura, desmarcar medicare_medicaid
+            if (checked) {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: checked,
+                    medicare_medicaid: false // Desmarca medicare_medicaid
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: checked
+                }));
+            }
         } else {
             setFormData(prev => ({
                 ...prev,
@@ -134,8 +180,6 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
             return;
         }
 
-        // Validación específica para el número social (si se ha ingresado, debe tener 9 dígitos)
-        // Solo valida si el campo 'social' tiene algún valor.
         if (formData.social && (formData.social.length !== 9 || !/^\d{9}$/.test(formData.social))) {
             setError('❌ El número social debe contener exactamente 9 dígitos.');
             return;
@@ -145,13 +189,13 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         try {
             let response;
             const dataToSend = { ...formData };
+            // Asegurarse de que el campo de dirección no se envíe si no existe en el formulario
+            delete dataToSend.direccion; // ¡Asegurarse de que no se envíe al backend!
 
             if (editingDependienteId) {
-                // Si estamos editando, hacemos un PUT
                 response = await axios.put(`${API_BASE_URL}/api/dependientes/${editingDependienteId}`, dataToSend);
                 setMessage('✅ Dependiente actualizado con éxito.');
             } else {
-                // Si no, hacemos un POST para crear uno nuevo
                 response = await axios.post(`${API_BASE_URL}/api/${userId}/dependientes`, dataToSend);
                 setMessage('✅ Dependiente añadido con éxito. ID: ' + response.data.dependienteId);
             }
@@ -160,7 +204,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 onDependienteAdded(editingDependienteId || response.data.dependienteId);
             }
 
-            clearForm(); // Resetea el formulario después de añadir/actualizar
+            clearForm();
 
         } catch (err) {
             console.error('Error al añadir/actualizar dependiente:', err.response ? err.response.data : err.message);
@@ -169,23 +213,24 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     };
 
     const editDependiente = (dependiente) => {
-        // Formatear fecha_nacimiento a 'YYYY-MM-DD' si viene de la DB (Date object)
         const formattedDate = dependiente.fecha_nacimiento ?
             new Date(dependiente.fecha_nacimiento).toISOString().split('T')[0] : '';
 
         setFormData({
             ...dependiente,
-            fecha_nacimiento: formattedDate
+            fecha_nacimiento: formattedDate,
+            // Asegurarse de que 'direccion' no se incluya al cargar datos si ya no existe en el estado
+            direccion: '' // Establecer dirección como vacío al editar, ya que se elimina
         });
         setCurrentLocation({
             estado: dependiente.estado || '',
             condado: dependiente.condado || '',
             ciudad: dependiente.ciudad || ''
         });
-        setEditingDependienteId(dependiente.id); // Guardar el ID del dependiente que se está editando
-        setAge(calculateAge(formattedDate)); // Recalcular edad
-        setMessage(''); // Limpiar mensajes al empezar a editar
-        setError(''); // Limpiar errores al empezar a editar
+        setEditingDependienteId(dependiente.id);
+        setAge(calculateAge(formattedDate));
+        setMessage('');
+        setError('');
     };
 
     const deleteDependiente = async (idToDelete) => {
@@ -197,7 +242,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                     onDependienteAdded();
                 }
                 if (editingDependienteId === idToDelete) {
-                    clearForm(); // Limpiar el formulario si se elimina el que se estaba editando
+                    clearForm();
                 }
             } catch (err) {
                 console.error('Error al eliminar dependiente:', err);
@@ -209,7 +254,8 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const clearForm = () => {
         setFormData({
             parentesco: 'Hijo', solicita_cobertura: false, nombres: '', apellidos: '',
-            sexo: '', direccion: '', fecha_nacimiento: '', social: '', estatus_migratorio: '',
+            sexo: '', // direccion: '', // ¡ELIMINADO!
+            fecha_nacimiento: '', social: '', estatus_migratorio: '',
             medicare_medicaid: false, estado: '', condado: '', ciudad: ''
         });
         setCurrentLocation({ estado: '', condado: '', ciudad: '' });
@@ -285,10 +331,11 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                         <h4>Datos Demográficos y de Contacto</h4>
                     </div>
 
-                    <div className="form-field">
+                    {/* ¡CAMPO DIRECCIÓN ELIMINADO! */}
+                    {/* <div className="form-field">
                         <label>Dirección:<span className="required-star">*</span></label>
                         <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} required />
-                    </div>
+                    </div> */}
 
                     <div className="form-field">
                         <label>Fecha de Nacimiento:<span className="required-star">*</span></label>
@@ -313,10 +360,10 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                             name="social"
                             value={formData.social}
                             onChange={handleChange}
-                            maxLength="9" // Limita a 9 caracteres en el input
-                            pattern="\d{9}" // Patrón para asegurar solo 9 dígitos (para navegadores que lo soporten)
-                            title="El número social debe contener exactamente 9 dígitos." // Mensaje de ayuda
-                            inputMode="numeric" // Optimizado para teclados numéricos en móviles
+                            maxLength="9"
+                            pattern="\d{9}"
+                            title="El número social debe contener exactamente 9 dígitos."
+                            inputMode="numeric"
                         />
                     </div>
 
@@ -336,9 +383,16 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                     />
 
                     <div className="form-field">
-                        <label>
+                        <label className="toggle-switch-label">
                             Medicare o Medicaid?:
-                            <input type="checkbox" name="medicare_medicaid" checked={formData.medicare_medicaid} onChange={handleChange} />
+                            <input
+                                type="checkbox"
+                                name="medicare_medicaid"
+                                checked={formData.medicare_medicaid}
+                                onChange={handleChange}
+                                className="toggle-switch-input"
+                            />
+                            <span className="toggle-switch-slider"></span>
                         </label>
                     </div>
 

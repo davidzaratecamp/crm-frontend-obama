@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
@@ -18,6 +18,10 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
     const [cardType, setCardType] = useState('unknown'); // 'visa', 'mastercard', 'unknown'
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+
+    // --- NEW STATE & REF FOR MASKING ---
+    const [showCardNumber, setShowCardNumber] = useState(false); // Controls if input type is 'text' or 'password'
+    const maskTimeoutRef = useRef(null); // Ref to store the timeout ID
 
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 10 }, (_, i) => currentYear + i);
@@ -74,15 +78,39 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
         setError('');
     }, [userId]);
 
+    // --- Cleanup for the timeout ref ---
+    useEffect(() => {
+        return () => {
+            if (maskTimeoutRef.current) {
+                clearTimeout(maskTimeoutRef.current);
+            }
+        };
+    }, []);
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
 
         if (name === 'cardNumberFull') {
-            const cleanValue = value.replace(/\D/g, '');
+            const cleanValue = value.replace(/\D/g, ''); // Keep only digits
+
+            // Clear any existing timeout
+            if (maskTimeoutRef.current) {
+                clearTimeout(maskTimeoutRef.current);
+            }
+
+            // Temporarily show the full number
+            setShowCardNumber(true);
+
+            // Set a timeout to mask the number after 500ms (0.5 seconds)
+            maskTimeoutRef.current = setTimeout(() => {
+                setShowCardNumber(false);
+            }, 500);
+
             setFormData(prev => ({
                 ...prev,
                 [name]: cleanValue,
-                ultimos_4_digitos_tarjeta: cleanValue.slice(-4)
+                ultimos_4_digitos_tarjeta: cleanValue.slice(-4) // Always keep the last 4 for display
             }));
             setCardType(detectCardType(cleanValue));
         } else if (name === 'cvv') {
@@ -163,6 +191,17 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
         }
     };
 
+    // Function to display the masked card number (e.g., **** **** **** 1234)
+    const getMaskedCardNumber = (cardNumber) => {
+        if (cardNumber.length <= 4) {
+            // If less than or equal to 4 digits, show them directly when not masked
+            return cardNumber;
+        }
+        // Mask all but the last 4 digits
+        return '*'.repeat(cardNumber.length - 4) + cardNumber.slice(-4);
+    };
+
+
     return (
         <div className="form-container">
             <h3>Información de Pago</h3>
@@ -174,10 +213,10 @@ function PagoForm({ userId, onPagoCompleted, onPagoUpdated }) {
                     <div className="form-field full-width"> {/* Added full-width for clarity if grid has multiple columns */}
                         <label htmlFor="cardNumberFull">Número de Tarjeta:</label>
                         <input
-                            type="password"
+                            type={showCardNumber ? "text" : "password"} // Dynamic type
                             id="cardNumberFull"
                             name="cardNumberFull"
-                            value={formData.cardNumberFull}
+                            value={showCardNumber ? formData.cardNumberFull : getMaskedCardNumber(formData.cardNumberFull)} // Apply masking
                             onChange={handleChange}
                             placeholder="Número completo de la tarjeta"
                             inputMode="numeric"

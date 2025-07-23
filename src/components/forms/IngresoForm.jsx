@@ -38,6 +38,7 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
     const [ingresosDependientes, setIngresosDependientes] = useState({});
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [totalIngresosAnuales, setTotalIngresosAnuales] = useState(0); // NUEVO ESTADO PARA LA SUMA TOTAL
 
     // Función para calcular ingresos anuales
     const calculateAnnualIncome = (weeklyIncome) => {
@@ -80,7 +81,6 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                         );
                         initialIngresosDep[dep.id] = {
                             hasIngresos: !!existingDepIngreso,
-                            // ✅ MODIFICACIÓN CLAVE: Asegura que tipo_declaracion SIEMPRE se inicialice como un string válido
                             tipo_declaracion: existingDepIngreso?.tipo_declaracion ? String(existingDepIngreso.tipo_declaracion) : 'W2',
                             ingresos_semanales: existingDepIngreso?.ingresos_semanales || '',
                             ingresos_anuales: existingDepIngreso?.ingresos_anuales || ''
@@ -96,6 +96,30 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
         };
         fetchDependientesAndTheirIngresos();
     }, [userId]);
+
+    // --- NUEVO EFECTO: Calcular la suma total de ingresos anuales ---
+    useEffect(() => {
+        let sum = 0;
+
+        // Sumar ingresos del usuario principal
+        const userAnnual = parseFloat(ingresosUsuario.ingresos_anuales);
+        if (!isNaN(userAnnual) && userAnnual > 0) {
+            sum += userAnnual;
+        }
+
+        // Sumar ingresos de los dependientes
+        for (const depId in ingresosDependientes) {
+            const depIngreso = ingresosDependientes[depId];
+            if (depIngreso.hasIngresos) {
+                const depAnnual = parseFloat(depIngreso.ingresos_anuales);
+                if (!isNaN(depAnnual) && depAnnual > 0) {
+                    sum += depAnnual;
+                }
+            }
+        }
+        setTotalIngresosAnuales(sum);
+    }, [ingresosUsuario, ingresosDependientes]); // Depende de los cambios en los ingresos de usuario y dependientes
+
 
     const handleUsuarioIngresosChange = (e) => {
         const { name, value } = e.target;
@@ -125,7 +149,6 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                 [dependienteId]: {
                     ...prev[dependienteId],
                     hasIngresos: checked,
-                    // ✅ MODIFICACIÓN: Cuando se marca 'hasIngresos', asegura que tipo_declaracion tenga un valor por defecto
                     ...(checked ? { tipo_declaracion: prev[dependienteId]?.tipo_declaracion || 'W2' } : { tipo_declaracion: 'W2', ingresos_semanales: '', ingresos_anuales: '' })
                 }
             }));
@@ -196,9 +219,6 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                     return;
                 }
 
-                // Asegúrate que el tipo_declaracion exista y sea válido
-                console.log(`DEBUG: Dependiente ${dep.nombres}, tipo_declaracion recibido en handleSubmit:`, depIngresos.tipo_declaracion, typeof depIngresos.tipo_declaracion);
-
                 if (!['W2', '1099'].includes(depIngresos.tipo_declaracion)) {
                     setError(`El tipo de declaración para ${dep.nombres} no es válido. Valor actual: '${depIngresos.tipo_declaracion}'`);
                     return;
@@ -215,8 +235,6 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                 }
             }
         }
-
-        console.log('Ingresos a enviar al backend:', allIngresosToSubmit);
 
         try {
             const currentIngresosRes = await axios.get(`${API_BASE_URL}/api/ingresos/Usuario/${userId}`);
@@ -386,6 +404,24 @@ function IngresoForm({ userId, onIngresosCompleted, initialData, onIngresosUpdat
                         ))}
                     </div>
                 )}
+                
+                {/* NUEVA SECCIÓN: SUMA TOTAL DE INGRESOS */}
+                <div className="form-section total-ingresos-section" style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '15px' }}>
+                    <h4>Suma Total de Ingresos Anuales del Grupo Familiar:</h4>
+                    <div className="form-field total-ingresos-display">
+                        <label>
+                            Total Anual Estimado:
+                            <input
+                                type="text"
+                                value={formatCurrency(totalIngresosAnuales)}
+                                readOnly
+                                disabled
+                                className="read-only-input total-ingresos-value"
+                                style={{ fontWeight: 'bold', fontSize: '1.2em', color: '#28a745' }}
+                            />
+                        </label>
+                    </div>
+                </div>
 
                 <button type="submit">Guardar Ingresos</button>
             </form>

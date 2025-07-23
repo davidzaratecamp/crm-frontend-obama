@@ -1,6 +1,7 @@
 // frontend/src/components/forms/EvidenciaUploader.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import '../../styles/EvidenciaUploader.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
@@ -99,72 +100,71 @@ function EvidenciaUploader({ userId, onEvidenciasCompleted, onEvidenciasUpdated 
     };
 
     return (
-        <div className="form-container">
-            <h3>Subir Evidencias</h3>
-            {message && <p className="form-messages success">{message}</p>}
-            {error && <p className="form-messages error">{error}</p>}
-            <form onSubmit={handleUpload}>
-                <div className="form-grid">
-                    <div className="form-field">
-                        <label>Seleccionar Archivo(s):<span className="required-star">*</span></label>
-                        <input
-                            type="file"
-                            multiple // Permite seleccionar múltiples archivos
-                            onChange={handleFileChange}
-                            required
-                            accept=".pdf, .jpg, .jpeg, .png" // Limita los tipos de archivo en el selector
-                        />
-                        {selectedFiles.length > 0 && (
-                            <p className="file-name-display">
-                                Archivos seleccionados: <strong>{selectedFiles.map(f => f.name).join(', ')}</strong>
-                            </p>
-                        )}
-                         <p className="help-text">Máximo 5 archivos (PDF, JPG, PNG), cada uno de hasta 5MB.</p>
-                    </div>
-                    <div className="form-field">
-                        <label>Descripción (opcional):</label>
-                        <textarea
-                            name="descripcion"
-                            value={fileDescription}
-                            onChange={handleDescriptionChange}
-                            rows="3"
-                            placeholder="Breve descripción de los archivos (ej. Comprobantes de ingresos de julio)"
-                        ></textarea>
-                    </div>
+    <div className="eup-form-container"> {/* Cambiado de form-container */}
+        <h3>Subir Evidencias</h3>
+        {message && <p className="eup-form-messages success">{message}</p>} {/* Cambiado de form-messages */}
+        {error && <p className="eup-form-messages error">{error}</p>} {/* Cambiado de form-messages */}
+        <form onSubmit={handleUpload}>
+            <div className="eup-form-grid"> {/* Cambiado de form-grid */}
+                <div className="eup-form-field"> {/* Cambiado de form-field */}
+                    <label>Seleccionar Archivo(s):<span className="required-star">*</span></label>
+                    <input
+                        type="file"
+                        multiple
+                        onChange={handleFileChange}
+                        required
+                        accept=".pdf, .jpg, .jpeg, .png"
+                    />
+                    {selectedFiles.length > 0 && (
+                        <p className="eup-file-name-display"> {/* Nuevo className */}
+                            Archivos seleccionados: <strong>{selectedFiles.map(f => f.name).join(', ')}</strong>
+                        </p>
+                    )}
+                     <p className="eup-help-text">Máximo 5 archivos (PDF, JPG, PNG), cada uno de hasta 5MB.</p> {/* Nuevo className */}
                 </div>
-                <button type="submit">Subir Evidencia(s)</button>
-            </form>
-
-            <hr style={{ margin: '20px 0' }} />
-
-            {evidencias.length > 0 && (
-                <div className="existing-evidences">
-                    <h4>Evidencias Subidas</h4>
-                    <ul>
-                        {evidencias.map(ev => (
-                            <li key={ev.id}>
-                                <span>
-                                    <strong>{ev.nombre_archivo}</strong> ({Math.round(ev.tamano_archivo / 1024)} KB) - {ev.descripcion}
-                                </span>
-                                {ev.ruta_archivo && ( // Asegúrate de que la ruta sea accesible
-                                    // La ruta debe ser accesible desde el frontend.
-                                    // Asegúrate de que tu backend sirva la carpeta 'uploads' como estática
-                                     <a href={`${API_BASE_URL}${ev.ruta_archivo}`} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '10px' }}>Ver</a>
-                                )}
-                                <button
-                                    onClick={() => handleDeleteEvidencia(ev.id)}
-                                    className="delete-button"
-                                    style={{ marginLeft: '10px', background: 'var(--color-danger)', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer', borderRadius: '4px' }}
-                                >
-                                    Eliminar
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                <div className="eup-form-field"> {/* Cambiado de form-field */}
+                    <label>Descripción (opcional):</label>
+                    <textarea
+                        name="descripcion"
+                        value={fileDescription}
+                        onChange={handleDescriptionChange}
+                        rows="3"
+                        placeholder="Breve descripción de los archivos (ej. Comprobantes de ingresos de julio)"
+                    ></textarea>
                 </div>
-            )}
-        </div>
-    );
+            </div>
+            <button type="submit" className="eup-submit-button"> {/* Nuevo className */}
+                Subir Evidencia(s)
+            </button>
+        </form>
+
+        <hr style={{ margin: '20px 0', borderColor: 'var(--eup-border-color)' }} /> {/* Ajuste opcional al estilo inline */}
+
+        {evidencias.length > 0 && (
+            <div className="eup-existing-evidences"> {/* Cambiado de existing-evidences */}
+                <h4>Evidencias Subidas</h4>
+                <ul>
+                    {evidencias.map(ev => (
+                        <li key={ev.id}>
+                            <span>
+                                <strong>{ev.nombre_archivo}</strong> ({Math.round(ev.tamano_archivo / 1024)} KB) - {ev.descripcion}
+                            </span>
+                            {ev.ruta_archivo && (
+                                 <a href={`${API_BASE_URL}${ev.ruta_archivo}`} target="_blank" rel="noopener noreferrer">Ver</a> 
+                            )}
+                            <button
+                                onClick={() => handleDeleteEvidencia(ev.id)}
+                                className="eup-delete-button" /* Cambiado de delete-button, eliminado style inline */
+                            >
+                                Eliminar
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        )}
+    </div>
+);
 }
 
 export default EvidenciaUploader;
