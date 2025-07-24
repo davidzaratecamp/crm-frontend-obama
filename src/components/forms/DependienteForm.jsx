@@ -14,11 +14,11 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         nombres: '',
         apellidos: '',
         sexo: '',
-        // direccion: '', // ¡ELIMINADO!
+        // ¡CAMBIO CLAVE AQUÍ! "direccion" se ha eliminado del estado inicial
         fecha_nacimiento: '',
         social: '',
         estatus_migratorio: '',
-        medicare_medicaid: false, // Ahora maneja la lógica de exclusión mutua
+        medicare_medicaid: false,
         estado: '',
         condado: '',
         ciudad: ''
@@ -45,7 +45,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const requiredFields = [
         'parentesco', 'nombres', 'apellidos', 'sexo', 'fecha_nacimiento',
         'estatus_migratorio'
-        // 'direccion' ya no es requerido
+        // ¡CAMBIO CLAVE AQUÍ! "direccion" ya no está en la lista de campos requeridos
     ];
     // Ajustamos el total de campos requeridos, ya que 'direccion' se elimina
     const totalRequiredFields = requiredFields.length + 3; // +3 para Estado, Condado, Ciudad
@@ -101,7 +101,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 completed++;
             }
         });
-        // La dirección ya no es un campo requerido para contar
+        // La dirección ya no es un campo requerido para contar, solo la ubicación
         if (formData.estado && formData.estado !== '') completed++;
         if (formData.condado && formData.condado !== '') completed++;
         if (formData.ciudad && formData.ciudad !== '') completed++;
@@ -189,8 +189,8 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         try {
             let response;
             const dataToSend = { ...formData };
-            // Asegurarse de que el campo de dirección no se envíe si no existe en el formulario
-            delete dataToSend.direccion; // ¡Asegurarse de que no se envíe al backend!
+            // ¡CAMBIO CLAVE AQUÍ! Asegurarse de que el campo de dirección no se envíe
+            delete dataToSend.direccion;
 
             if (editingDependienteId) {
                 response = await axios.put(`${API_BASE_URL}/api/dependientes/${editingDependienteId}`, dataToSend);
@@ -219,8 +219,8 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         setFormData({
             ...dependiente,
             fecha_nacimiento: formattedDate,
-            // Asegurarse de que 'direccion' no se incluya al cargar datos si ya no existe en el estado
-            direccion: '' // Establecer dirección como vacío al editar, ya que se elimina
+            // ¡CAMBIO CLAVE AQUÍ! Asegurarse de que 'direccion' no se incluya al cargar datos
+            direccion: undefined // O simplemente no incluir la propiedad
         });
         setCurrentLocation({
             estado: dependiente.estado || '',
@@ -254,7 +254,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const clearForm = () => {
         setFormData({
             parentesco: 'Hijo', solicita_cobertura: false, nombres: '', apellidos: '',
-            sexo: '', // direccion: '', // ¡ELIMINADO!
+            sexo: '', // ¡CAMBIO CLAVE AQUÍ! "direccion" se ha eliminado
             fecha_nacimiento: '', social: '', estatus_migratorio: '',
             medicare_medicaid: false, estado: '', condado: '', ciudad: ''
         });
@@ -331,7 +331,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                         <h4>Datos Demográficos y de Contacto</h4>
                     </div>
 
-                    {/* ¡CAMPO DIRECCIÓN ELIMINADO! */}
+                    {/* ¡CAMBIO CLAVE AQUÍ! El campo de dirección ha sido ELIMINADO del JSX */}
                     {/* <div className="form-field">
                         <label>Dirección:<span className="required-star">*</span></label>
                         <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} required />
@@ -377,6 +377,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                         </select>
                     </div>
 
+                    {/* LocationSelector permanece ya que el dependiente puede tener diferente estado/condado/ciudad */}
                     <LocationSelector
                         onLocationChange={handleLocationChange}
                         initialLocation={{ estado: currentLocation.estado, condado: currentLocation.condado, ciudad: currentLocation.ciudad }}
