@@ -82,7 +82,7 @@ export default function Home() {
       <Navbar />
       <div className="container text-center">
         <div className='row'>
-          <div className="card m-3" style={{ width: '25rem', background: 'linear-gradient(100deg, #0C584C, #37EC7C)',border: 'none'}}>
+          <div className="card m-3" style={{ width: '25rem', background: 'linear-gradient(100deg, #ffffff, #37EC7C)',border: 'none'}}>
             <div className="card-body p-5">
               <h5 className="card-title">📊 Resumen</h5>
               <h6 className="card-subtitle mb-2 text-muted">Ventas del mes</h6>
@@ -95,7 +95,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <div className='card m-3' style={{ width: '30rem', background: 'linear-gradient(100deg, #373E4D, #4283EE)',border: 'none'}}>
+          <div className='card m-3' style={{ width: '30rem', background: 'linear-gradient(100deg, #ffffff, #4283EE)',border: 'none'}}>
             <ProgressBars players={players} className="Contenedocardr_general" />
           </div>
 

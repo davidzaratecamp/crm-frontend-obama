@@ -1,33 +1,34 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // ✅ Importaciones clave
 import PrincipalData from './pages/PrincipalData.jsx';
-import Sidebar from './components/Sidebar.jsx'; // Importa el Sidebar
-import './App.css'; // Estilos generales de la aplicación
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Sidebar from './components/Sidebar.jsx';
+import './App.css';
 import Home from "./pages/Home.jsx";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/home' element={
+    return (
+        // ✅ Envuelve toda tu aplicación en BrowserRouter
+        <Router>
             <div className="app-container">
+                {/* Sidebar siempre visible */}
                 <Sidebar />
                 <div className="main-content">
-                    <Home />
+                    {/* Define tus rutas aquí */}
+                    <Routes>
+                        {/* Ruta para un nuevo registro (cuando no hay ID en la URL) */}
+                        <Route path="/" element={<PrincipalData />} />
+                        <Route path='/home' element={<Home />}/>
+
+                        {/* Ruta para continuar un registro existente (cuando hay ID en la URL) */}
+                        <Route path="/registro/:userId" element={<PrincipalData />} />
+
+                        {/* Si tienes otras rutas, añádelas aquí */}
+                        {/* <Route path="/otra-pagina" element={<OtraPagina />} /> */}
+                    </Routes>
                 </div>
             </div>
-        } />
-        <Route path='/ventas/registro' element={
-          <div className="app-container">
-            <Sidebar />
-            <div className="main-content">
-              <PrincipalData />
-            </div>
-          </div>
-        } />
-      </Routes>
-    </BrowserRouter>
-  );
+        </Router>
+    );
 }
 
 export default App;
