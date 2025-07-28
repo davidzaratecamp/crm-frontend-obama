@@ -16,7 +16,7 @@ function Sidebar() {
                 <ul>
                     {/* Elementos del menú, usa Link si tienes react-router-dom */}
                     <li className="nav-item active">
-                        <a href="/#">Página principal</a> {/* O <Link to="/">Página principal</Link> */}
+                        <a href="/home">Página principal</a> {/* O <Link to="/">Página principal</Link> */}
                     </li>
                     <li className="nav-item">
                         <a href="/#">Correo electrónico</a>
@@ -28,7 +28,7 @@ function Sidebar() {
                         <a href="/#">Cuidado de Obama</a>
                         <ul className="submenu">
                             <li className="submenu-item active">
-                                <a href="/#">✔ Nueva venta</a> {/* El de la imagen */}
+                                <a href="/ventas/registro" >✔ Nueva venta</a> {/* El de la imagen */}
                             </li>
                             <li className="submenu-item">
                                 <a href="/#">✔ Ventas</a>

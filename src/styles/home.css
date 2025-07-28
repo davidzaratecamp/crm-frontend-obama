@@ -1,0 +1,53 @@
+.Contenedor_general {
+    width: 100%;
+    background-color: #fdfdfd; /* Fondo casi blanco para la cabecera */
+    padding: 18px 25px; /* Más padding */
+    text-align: left;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.2em; /* Título un poco más grande */
+    font-weight: 600; /* Más peso para el título */
+    color: #343a40;
+    border-bottom: 1px solid #f0f0f0; /* Borde inferior muy sutil */
+    transition: background-color 0.2s ease;
+}
+
+.Gridhome {
+    margin: auto;
+    height: 100%;
+    display: grid;
+    grid-template-areas: "a a";
+    gap: 0%;
+    grid-auto-columns: 50vh;
+}
+
+.Gridhome > .ItemsgridRight {
+    text-align: center;
+    border-bottom: 1px solid #000000; 
+    border-right: 1px solid #000000; 
+}
+
+.Gridhome > .ItemsgridLeft {
+    text-align: center;
+    border-top: 1px solid #000000; 
+    border-right: 1px solid #000000; 
+}
+
+.Gridhome > .Itemsgridbuttom {
+    text-align: center;
+    border-top: 1px solid #000000; 
+    border-right: 1px solid #000000; 
+}
+
+.Gridhome > .ItemsgridTop {
+    text-align: center;
+    border-top: 1px solid #000000; 
+    border-left: 1px solid #000000; 
+}
+.Gridhome > .Itemsgridtopleft {
+    text-align: center;
+    border-bottom: 1px solid #000000; 
+    border-left: 1px solid #000000; 
+}
