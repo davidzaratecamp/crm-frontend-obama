@@ -1,4 +1,3 @@
-// frontend/src/components/forms/UserForm.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { calculateAge } from '../../utils/dateCalculations';
@@ -10,7 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001
 // Añadir onUserUpdated a las props
 function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }) {
     const [formData, setFormData] = useState({
-        solicita_cobertura: false,
+        solicita_cobertura: false, // Por defecto false
         nombres: '',
         apellidos: '',
         sexo: '',
@@ -34,12 +33,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [age, setAge] = useState(null);
-
-    const [currentLocation, setCurrentLocation] = useState({
-        estado: formData.estado,
-        condado: formData.condado,
-        ciudad: formData.ciudad
-    });
+    const [showValidationErrors, setShowValidationErrors] = useState(false);
 
     const estatusMigratorioOptions = [
         "RESIDENTE", "CIUDADANO", "PERMISO DE TRABAJO", "PASAPORTE",
@@ -47,8 +41,8 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
         "PAROLE HUMANITARIO", "TPS", "GREEN CARD", "I-220A"
     ];
 
-    // Define TODOS los campos obligatorios EXCEPTO phone_2
     const requiredFields = [
+        // ✅ ELIMINADO: 'solicita_cobertura' de los campos requeridos
         'nombres', 'apellidos', 'sexo', 'fecha_nacimiento',
         'social', 'estatus_migratorio',
         'tipo_vivienda', 'direccion', 'codigo_postal',
@@ -57,7 +51,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
         'pregunta_seguridad', 'respuesta_seguridad'
     ];
 
-    const totalRequiredFields = requiredFields.length + 3; // +3 por estado, condado, ciudad
+    const totalRequiredFields = requiredFields.length + 3; // +3 para Estado, Condado, Ciudad
 
     const [completedRequiredFields, setCompletedRequiredFields] = useState(0);
 
@@ -67,19 +61,21 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             const formattedDate = initialData.fecha_nacimiento ?
                 new Date(initialData.fecha_nacimiento).toISOString().split('T')[0] : '';
 
+            const cleanedInitialData = Object.fromEntries(
+                Object.entries(initialData).map(([key, value]) => [
+                    key,
+                    value === null ? '' : value // Reemplaza null por cadena vacía
+                ])
+            );
+
             setFormData({
-                ...initialData,
+                ...cleanedInitialData,
                 fecha_nacimiento: formattedDate,
-                respuesta_seguridad: '' // Nunca precargar la respuesta de seguridad
-            });
-            setCurrentLocation({
-                estado: initialData.estado || '',
-                condado: initialData.condado || '',
-                ciudad: initialData.ciudad || ''
+                respuesta_seguridad: ''
             });
             setAge(calculateAge(formattedDate));
+            setShowValidationErrors(true);
         } else {
-            // Resetear el formulario si no hay initialData (para un nuevo registro)
             setFormData({
                 solicita_cobertura: false, nombres: '', apellidos: '', sexo: '',
                 fecha_nacimiento: '', social: '', estatus_migratorio: '',
@@ -88,12 +84,12 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                 pregunta_seguridad: '', respuesta_seguridad: '',
                 ciudad: '', estado: '', condado: ''
             });
-            setCurrentLocation({ estado: '', condado: '', ciudad: '' });
             setAge(null);
             setMessage('');
             setError('');
+            setShowValidationErrors(false);
         }
-    }, [initialData]);
+    }, [initialData, userIdForUpdate]);
 
     useEffect(() => {
         setCompletedRequiredFields(countCompletedFields());
@@ -104,33 +100,32 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
         setAge(calculatedAge);
     }, [formData.fecha_nacimiento]);
 
-
     const countCompletedFields = () => {
         let completed = 0;
 
         requiredFields.forEach(field => {
-            if (formData[field] && String(formData[field]).trim() !== '' && String(formData[field]) !== 'Selecciona una opción') {
-                if (typeof formData[field] === 'boolean') {
-                    completed++;
-                } else if (String(formData[field]).trim() !== '') {
+            if (formData[field] !== undefined && formData[field] !== null) {
+                if (typeof formData[field] === 'string' && formData[field].trim() === '') {
+                    // Ignorar strings vacíos o solo espacios en blanco
+                } else if (String(formData[field]) === 'Selecciona una opción') {
+                    // Ignorar la opción por defecto de los selects
+                } else {
                     completed++;
                 }
             }
         });
 
-        if (formData.estado && formData.estado !== '') completed++;
-        if (formData.condado && formData.condado !== '') completed++;
-        if (formData.ciudad && formData.ciudad !== '') completed++;
+        if (formData.estado && formData.estado.trim() !== '') completed++;
+        if (formData.condado && formData.condado.trim() !== '') completed++;
+        if (formData.ciudad && formData.ciudad.trim() !== '') completed++;
 
         return completed;
     };
-
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
         if (name === 'social') {
-            // Eliminar cualquier cosa que no sea un dígito
             const cleanedValue = value.replace(/\D/g, '');
             setFormData(prev => ({
                 ...prev,
@@ -142,6 +137,9 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                 [name]: type === 'checkbox' ? checked : value
             }));
         }
+        if (!showValidationErrors) {
+            setShowValidationErrors(true);
+        }
     };
 
     const handleLocationChange = (location) => {
@@ -151,13 +149,16 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             condado: location.condado,
             ciudad: location.ciudad
         }));
-        setCurrentLocation(location);
+        if (!showValidationErrors) {
+            setShowValidationErrors(true);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
         setError('');
+        setShowValidationErrors(true);
 
         const fieldsRemaining = totalRequiredFields - countCompletedFields();
         if (fieldsRemaining > 0) {
@@ -165,8 +166,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             return;
         }
 
-        // Validación específica para el número social (9 dígitos)
-        if (formData.social.length !== 9 || !/^\d{9}$/.test(formData.social)) {
+        if (formData.social && (formData.social.length !== 9 || !/^\d{9}$/.test(formData.social))) {
             setError('❌ El número social debe contener exactamente 9 dígitos.');
             return;
         }
@@ -176,22 +176,17 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             const dataToSend = { ...formData };
 
             if (userIdForUpdate) {
-                // Hacemos un PUT para actualizar
                 response = await axios.put(`${API_BASE_URL}/api/usuarios/${userIdForUpdate}`, dataToSend);
                 setMessage('✅ Usuario actualizado con éxito.');
-                // Llama al callback para notificar al padre que la actualización fue exitosa
                 if (onUserUpdated) {
                     onUserUpdated();
                 }
             } else {
-                // Hacemos un POST para crear
                 response = await axios.post(`${API_BASE_URL}/api/usuarios`, dataToSend);
                 setMessage('✅ Usuario creado con éxito. ID: ' + response.data.userId);
-                // Llama al callback para el nuevo usuario
                 if (onUserCreated) {
                     onUserCreated(response.data.userId);
                 }
-                // Resetea el formulario solo si es una creación de usuario nuevo
                 setFormData({
                     solicita_cobertura: false, nombres: '', apellidos: '', sexo: '',
                     fecha_nacimiento: '', social: '', estatus_migratorio: '',
@@ -200,31 +195,34 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     pregunta_seguridad: '', respuesta_seguridad: '',
                     ciudad: '', estado: '', condado: ''
                 });
-                setCurrentLocation({ estado: '', condado: '', ciudad: '' });
+                setShowValidationErrors(false);
             }
 
         } catch (err) {
             console.error('Error al procesar usuario:', err.response ? err.response.data : err.message);
             setError(err.response ? err.response.data.message : '❌ Error al conectar con el servidor.');
+            setShowValidationErrors(true);
         }
     };
-
 
     return (
         <form onSubmit={handleSubmit}>
             <div className="form-title-status">
                 <h3>Datos Personales del Solicitante Principal</h3>
-                <FormStatusIndicator
-                    totalFields={totalRequiredFields}
-                    completedFields={completedRequiredFields}
-                />
+                {showValidationErrors && (
+                    <FormStatusIndicator
+                        totalFields={totalRequiredFields}
+                        completedFields={completedRequiredFields}
+                    />
+                )}
             </div>
 
             {message && <p className="form-messages success">{message}</p>}
-            {error && <p className="form-messages error">{error}</p>}
+            {error && showValidationErrors && <p className="form-messages error">{error}</p>}
 
             <div className="form-grid">
 
+                {/* Campo Solicita Cobertura */}
                 <div className="form-field">
                     <label className="toggle-switch-label">
                         ¿Solicita cobertura?:
@@ -239,16 +237,19 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     </label>
                 </div>
 
+                {/* Campo Nombres */}
                 <div className="form-field">
                     <label>Nombres:<span className="required-star">*</span></label>
                     <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Apellidos */}
                 <div className="form-field">
                     <label>Apellidos:<span className="required-star">*</span></label>
                     <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Sexo */}
                 <div className="form-field">
                     <label>Sexo:<span className="required-star">*</span></label>
                     <select name="sexo" value={formData.sexo} onChange={handleChange} required>
@@ -258,11 +259,13 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     </select>
                 </div>
 
+                {/* Campo Fecha de Nacimiento */}
                 <div className="form-field">
                     <label>Fecha de Nacimiento:<span className="required-star">*</span></label>
                     <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Edad Actual (solo lectura) */}
                 <div className="form-field">
                     <label>Edad Actual:</label>
                     <input
@@ -274,6 +277,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     />
                 </div>
 
+                {/* Campo Número Social */}
                 <div className="form-field">
                     <label>Número Social:<span className="required-star">*</span></label>
                     <input
@@ -281,13 +285,14 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                         name="social"
                         value={formData.social}
                         onChange={handleChange}
-                        maxLength="9" // Limita a 9 caracteres en el input
-                        pattern="\d{9}" // Patrón para asegurar solo 9 dígitos (para navegadores que lo soporten)
-                        title="El número social debe contener exactamente 9 dígitos." // Mensaje de ayuda
-                        inputMode="numeric" // Optimizado para teclados numéricos en móviles
+                        maxLength="9"
+                        pattern="\d{9}"
+                        title="El número social debe contener exactamente 9 dígitos."
+                        inputMode="numeric"
                     />
                 </div>
 
+                {/* Campo Estatus Migratorio */}
                 <div className="form-field">
                     <label>Estatus Migratorio:<span className="required-star">*</span></label>
                     <select name="estatus_migratorio" value={formData.estatus_migratorio} onChange={handleChange} required>
@@ -302,36 +307,47 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     <h4>Información de Contacto y Ubicación</h4>
                 </div>
 
+                {/* Campo Dirección */}
                 <div className="form-field">
                     <label>Dirección:<span className="required-star">*</span></label>
                     <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Tipo de Vivienda */}
                 <div className="form-field">
                     <label>Tipo de Vivienda:<span className="required-star">*</span></label>
                     <input type="text" name="tipo_vivienda" value={formData.tipo_vivienda} onChange={handleChange} />
                 </div>
 
+                {/* Componente LocationSelector */}
                 <LocationSelector
+                    location={{
+                        estado: formData.estado,
+                        condado: formData.condado,
+                        ciudad: formData.ciudad
+                    }}
                     onLocationChange={handleLocationChange}
-                    initialLocation={{ estado: currentLocation.estado, condado: currentLocation.condado, ciudad: currentLocation.ciudad }}
                 />
 
+                {/* Campo Código Postal */}
                 <div className="form-field">
                     <label>Código Postal:<span className="required-star">*</span></label>
                     <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} />
                 </div>
 
+                {/* Campo Correo Electrónico */}
                 <div className="form-field">
                     <label>Correo Electrónico:<span className="required-star">*</span></label>
                     <input type="email" name="correo_electronico" value={formData.correo_electronico} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Teléfono 1 */}
                 <div className="form-field">
                     <label>Teléfono 1:<span className="required-star">*</span></label>
                     <input type="tel" name="phone_1" value={formData.phone_1} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Teléfono 2 (opcional) */}
                 <div className="form-field">
                     <label>Teléfono 2 (opcional):</label>
                     <input type="tel" name="phone_2" value={formData.phone_2} onChange={handleChange} />
@@ -341,6 +357,7 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     <h4>Información de Origen de la Venta y Seguridad</h4>
                 </div>
 
+                {/* Campo Origen de la Venta */}
                 <div className="form-field">
                     <label>Origen de la Venta:<span className="required-star">*</span></label>
                     <select name="origen_venta" value={formData.origen_venta} onChange={handleChange} required>
@@ -351,11 +368,13 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
                     </select>
                 </div>
 
+                {/* Campo Pregunta de Seguridad */}
                 <div className="form-field">
                     <label>Pregunta de Seguridad:<span className="required-star">*</span></label>
                     <input type="text" name="pregunta_seguridad" value={formData.pregunta_seguridad} onChange={handleChange} required />
                 </div>
 
+                {/* Campo Respuesta de Seguridad */}
                 <div className="form-field">
                     <label>Respuesta de Seguridad:<span className="required-star">*</span></label>
                     <input type="password" name="respuesta_seguridad" value={formData.respuesta_seguridad} onChange={handleChange} required />

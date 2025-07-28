@@ -1,3 +1,4 @@
+//src/data/locationsData.js
 export const data = [
     { estado: "Alabama", condado: "Etowah", ciudad:"Gadsden"},
     { estado: "Alabama", condado: "Jefferson", ciudad:"Bessemer"},
