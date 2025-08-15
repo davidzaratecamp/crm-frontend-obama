@@ -1,0 +1,134 @@
+/* src/styles/PersonalLogin.css */
+
+/* --- Estilos del Contenedor de la Página de Login --- */
+.login-page-container {
+  /* Establece la imagen de fondo y la configura */
+  background-image: url('../../public/images/fondo-login.jpg');
+  background-size: cover; /* La imagen cubre todo el contenedor */
+  background-position: center; /* Centra la imagen */
+  background-repeat: no-repeat; /* Evita que la imagen se repita */
+  
+  min-height: 100vh; /* Ocupa toda la altura de la ventana */
+  width: 100vw; /* Ocupa todo el ancho de la ventana */
+  
+  /* Usa Flexbox para posicionar el formulario a la derecha */
+  display: flex;
+  justify-content: flex-end; /* Alinea el contenido al final (derecha) */
+  align-items: center; /* Centra verticalmente el contenido */
+  padding: 50px; /* Espaciado interno para que no esté pegado al borde */
+}
+
+/* --- Estilos del Wrapper del Formulario (para la tarjeta blanca) --- */
+.login-form-wrapper {
+  background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco con transparencia */
+  padding: 40px;
+  border-radius: 15px; /* Bordes más redondeados para un look moderno */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Sombra más fuerte y profesional */
+  width: 100%;
+  max-width: 450px; /* Un poco más ancho para un mejor diseño */
+  text-align: center;
+  margin-right: 100px;
+  
+  /* Animación de entrada suave */
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* --- Estilos del Contenido de la Tarjeta --- */
+.login-title {
+  margin-bottom: 30px;
+  color: #2c3e50; /* Color de título oscuro y elegante */
+  font-size: 2.2em;
+  font-weight: 700;
+  border-bottom: 2px solid #3498db; /* Línea de color debajo del título */
+  padding-bottom: 10px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Espacio entre los grupos de formulario */
+}
+
+.form-group-login {
+  text-align: left;
+}
+
+.form-group-login label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.form-input-login {
+  width: 100%; /* Ocupa todo el ancho del contenedor */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px; /* Bordes más redondeados en los inputs */
+  font-size: 1em;
+  transition: all 0.3s ease-in-out;
+  background-color: #f9f9f9;
+}
+
+.form-input-login:focus {
+  border-color: #3498db; /* Color de enfoque azul profesional */
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+  outline: none;
+}
+
+.error-message-login {
+  color: #e74c3c;
+  margin-top: 10px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.login-button {
+  background-color: #3498db; /* Un azul profesional */
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+}
+
+.login-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-button:disabled {
+  background-color: #a0c9e6;
+  cursor: not-allowed;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Animación de entrada para el formulario */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive para pantallas más pequeñas */
+@media (max-width: 768px) {
+  .login-page-container {
+    justify-content: center; /* Centra el formulario en móviles */
+    padding: 20px;
+  }
+  .login-form-wrapper {
+    width: 90%;
+  }
+}

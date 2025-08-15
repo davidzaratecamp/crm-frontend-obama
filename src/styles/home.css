@@ -1,53 +1,197 @@
-.Contenedor_general {
-    width: 100%;
-    background-color: #fdfdfd; /* Fondo casi blanco para la cabecera */
-    padding: 18px 25px; /* Más padding */
-    text-align: left;
-    border: none;
+/* src/styles/home.css */
+
+/* --- Estilos Generales y Fondo --- */
+body {
+    background: #e0e5ec; /* Color base de fondo, un gris claro para un look "neumorphism" */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fuente profesional y legible */
+    color: #333; /* Color de texto general */
+}
+
+.container.text-center {
+    padding: 30px;
+    max-width: 1400px; /* Limita el ancho para centrar el contenido */
+    margin: 30px auto; /* Centra el contenedor */
+    display: flex; /* Usa flexbox para las cards */
+    flex-wrap: wrap; /* Permite que las cards se envuelvan */
+    justify-content: center; /* Centra las cards horizontalmente */
+    gap: 25px; /* Espacio entre las cards */
+}
+
+/* --- Estilos de las Cards (Resumen, Mi Progreso, Ranking) --- */
+.card {
+    border-radius: 20px; /* Bordes redondeados para un look moderno */
+    box-shadow: 8px 8px 15px #c8d0da, -8px -8px 15px #ffffff; /* Sombra sutil para efecto 3D/neumorphism */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave al pasar el ratón */
+    overflow: hidden; /* Asegura que los gradientes no se salgan */
+    position: relative; /* Para posibles efectos internos */
+    background: #e0e5ec; /* Fondo por defecto de la card, se sobrescribe con gradientes */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Pequeño levantamiento al pasar el ratón */
+    box-shadow: 10px 10px 20px #b1b8c2, -10px -10px 20px #f0f7ff; /* Sombra más pronunciada */
+}
+
+.card-body {
+    padding: 3rem !important; /* Espaciado interno generoso */
+    position: relative;
+    z-index: 2; /* Para asegurar que el contenido esté sobre el fondo */
+}
+
+.card-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c3e50; /* Un azul oscuro para títulos */
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 1.2em; /* Título un poco más grande */
-    font-weight: 600; /* Más peso para el título */
-    color: #343a40;
-    border-bottom: 1px solid #f0f0f0; /* Borde inferior muy sutil */
-    transition: background-color 0.2s ease;
+    gap: 10px;
 }
 
-.Gridhome {
-    margin: auto;
+.card-subtitle {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.card-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #495057;
+}
+
+/* Gradientes específicos para cada tipo de card */
+.card-summary {
+    background: linear-gradient(135deg, #e0e5ec 0%, #a7d9b9 100%); /* Verde claro */
+}
+.card-progress {
+    background: linear-gradient(135deg, #e0e5ec 0%, #ffe4b2 100%); /* Naranja suave */
+}
+.card-ranking {
+    background: linear-gradient(135deg, #e0e5ec 0%, #a7c9f5 100%); /* Azul suave */
+}
+
+/* --- Estilos para el Ranking (simulando videojuego) --- */
+.progress-bars-container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.progress-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    position: relative;
+    color: #333;
+}
+
+.player-name {
+    flex: 1; /* Ocupa el espacio restante */
+    font-weight: bold;
+    font-size: 1.1em;
+    padding-right: 15px; /* Espacio antes de la barra */
+    text-align: right; /* Alinea el nombre a la derecha */
+    white-space: nowrap; /* Evita que el nombre se rompa en varias líneas */
+    min-width: 120px; /* Asegura un ancho mínimo para los nombres */
+}
+
+.progress-bar-wrapper {
+    flex: 2; /* La barra ocupa más espacio */
+    background-color: #d1d9e6; /* Fondo de la barra vacía */
+    border-radius: 10px;
+    height: 25px; /* Altura de la barra */
+    overflow: hidden;
+    box-shadow: inset 2px 2px 5px #b8c2cc, inset -2px -2px 5px #ffffff; /* Sombra interna para efecto 3D */
+    position: relative;
+}
+
+.progress-bar-fill {
     height: 100%;
-    display: grid;
-    grid-template-areas: "a a";
-    gap: 0%;
-    grid-auto-columns: 50vh;
+    background: linear-gradient(90deg, #6dd5ed, #2193b0); /* Degradado de la barra de progreso */
+    width: 0%; /* Empezamos en 0% para la animación */
+    border-radius: 10px;
+    transition: width 1s ease-out; /* Animación de la barra */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Alinea el puntaje al final de la barra */
+    padding-right: 10px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
-.Gridhome > .ItemsgridRight {
-    text-align: center;
-    border-bottom: 1px solid #000000; 
-    border-right: 1px solid #000000; 
+/* Colores para las primeras posiciones */
+.progress-bar-fill.gold {
+    background: linear-gradient(90deg, #FFD700, #DAA520); /* Oro */
+}
+.progress-bar-fill.silver {
+    background: linear-gradient(90deg, #C0C0C0, #A9A9A9); /* Plata */
+}
+.progress-bar-fill.bronze {
+    background: linear-gradient(90deg, #CD7F32, #8B4513); /* Bronce */
 }
 
-.Gridhome > .ItemsgridLeft {
-    text-align: center;
-    border-top: 1px solid #000000; 
-    border-right: 1px solid #000000; 
+.player-score {
+    font-weight: bold;
+    font-size: 0.9em; /* Más pequeño para que quepa dentro de la barra */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
-.Gridhome > .Itemsgridbuttom {
+/* --- Mejor Vendedor --- */
+/* 👇 CLASE RENOMBRADA AQUÍ 👇 */
+.best-seller-card {
     text-align: center;
-    border-top: 1px solid #000000; 
-    border-right: 1px solid #000000; 
+    padding: 20px;
+    background: linear-gradient(45deg, #e0e5ec, #f0f5fa);
+    border-radius: 15px;
+    box-shadow: 5px 5px 10px #c8d0da, -5px -5px 10px #ffffff;
+    margin: 30px auto;
+    max-width: 600px;
+    color: #2c3e50;
+    font-size: 1.5rem;
 }
 
-.Gridhome > .ItemsgridTop {
-    text-align: center;
-    border-top: 1px solid #000000; 
-    border-left: 1px solid #000000; 
+/* 👇 Y TAMBIÉN EN LOS SELECTORES HIJOS 👇 */
+.best-seller-card h2 {
+    font-size: 2.2rem;
+    color: #4CAF50; /* Un verde vibrante para el ganador */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
 }
-.Gridhome > .Itemsgridtopleft {
-    text-align: center;
-    border-bottom: 1px solid #000000; 
-    border-left: 1px solid #000000; 
+
+.best-seller-card p {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* --- Navbar (ajuste si es necesario) --- */
+/* Asegúrate de que tu Navbar tenga un buen contraste con el fondo */
+.navbar {
+    background: #2c3e50; /* Un azul oscuro elegante */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    color: white;
+}
+.navbar a {
+    color: white !important;
+}
+.navbar a:hover {
+    color: #37EC7C !important; /* Resalte al pasar el ratón */
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .container.text-center {
+        flex-direction: column;
+        align-items: center;
+    }
+    .card {
+        width: 90% !important; /* Las cards ocupan casi todo el ancho en móviles */
+    }
+    .player-name {
+        min-width: 80px; /* Ajuste para móviles */
+        text-align: left;
+        padding-left: 5px;
+    }
 }

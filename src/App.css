@@ -1,6 +1,6 @@
 /* frontend/src/App.css */
 
-/* Contenedor principal de la aplicación */
+/* Contenedor principal de la aplicación cuando el Sidebar está presente */
 .app-container {
   display: flex; /* Usamos flexbox para el layout principal */
   width: 100%;
@@ -8,15 +8,14 @@
   background-color: #f0f2f5; /* Un color de fondo gris muy claro para el app-container */
 }
 
-/* El área de contenido principal (donde se renderiza PrincipalData.jsx) */
-.main-content {
+/* El área de contenido principal para las páginas cuando el Sidebar ESTÁ VISIBLE */
+/* Renombramos o creamos una nueva clase para aplicar el margen del sidebar */
+.app-main-content { /* <-- ¡NUEVA CLASE O RENOMBRADO! */
   flex-grow: 1; /* Hace que ocupe todo el espacio restante después del sidebar */
   padding: 20px 30px; /* Padding interno para el contenido de la página */
-  margin: 20px 30px 20px 270px; /* Margen para dejar espacio al sidebar fijo: top, right, bottom, left */
-  /* NOTA: El fondo blanco y las sombras de "módulo" ahora se aplican a cada AccordionItem individualmente */
+  margin: 20px 30px 20px 270px; /* <-- ¡AQUÍ ES DONDE APLICAMOS EL MARGEN DEL SIDEBAR! */
 }
 
-/* --- Estilos para los formularios dentro de PrincipalData.jsx (en los AccordionItems) --- */
 
 /* Contenedor flex para las columnas de los campos dentro de un formulario */
 .accordion-content .form-grid {
@@ -28,24 +27,22 @@
 
 /* Cada campo individual que actuará como una columna */
 .accordion-content .form-field {
-    /* Distribución en 3 columnas (aprox.) */
-    flex: 1 1 calc(33.33% - 20px); /* Ajuste para 3 columnas con un gap de 20px */
-    min-width: 250px; /* Asegura un tamaño mínimo para la legibilidad del campo */
-
+    flex: 1 1 calc(33.33% - 20px);
+    min-width: 250px;
     display: flex;
-    flex-direction: column; /* Apila el texto del label sobre el input */
+    flex-direction: column;
 }
 
 /* Estilo específico para el checkbox "Solicita cobertura?" para que ocupe una fila completa */
 .accordion-content .form-field:first-child {
-    flex: 1 1 100%; /* Ocupa el 100% del ancho para una fila completa */
+    flex: 1 1 100%;
 }
 
 /* Estilos para el texto de las etiquetas (labels) */
 .accordion-content .form-field label {
-    margin-bottom: 8px; /* Espacio entre el texto del label y el input */
-    font-weight: 500; /* Peso de la fuente para un aspecto más profesional */
-    color: #495057; /* Un gris oscuro suave para el texto de la etiqueta */
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #495057;
     font-size: 0.95em;
 }
 
@@ -56,67 +53,67 @@
 .accordion-content .form-field input[type="date"],
 .accordion-content .form-field input[type="number"],
 .accordion-content .form-field select {
-  width: 100%; /* El input ocupa el 100% del ancho de su contenedor .form-field */
-  padding: 12px 15px; /* Más padding para mayor espacio interno */
-  border: 1px solid #e0e0e0; /* Borde más claro y sutil */
-  border-radius: 8px; /* Bordes redondeados para inputs */
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 1em;
   color: #343a40;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Transición suave para enfoque */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Estilo para los inputs al estar enfocados (al hacer clic en ellos) */
 .accordion-content .form-field input:focus,
 .accordion-content .form-field select:focus {
-  border-color: #80bdff; /* Borde azul suave al enfocar */
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Sombra azul suave al enfocar */
-  outline: none; /* Elimina el contorno por defecto del navegador */
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
 }
 
 /* Estilo para el input de tipo checkbox */
 .accordion-content .form-field input[type="checkbox"] {
   margin-right: 10px;
-  transform: scale(1.1); /* Ligeramente más grande */
+  transform: scale(1.1);
 }
 
 /* Estilos de botones con un aspecto más profesional */
 .accordion-content button {
-  background-color: #007bff; /* Color azul primario */
+  background-color: #007bff;
   color: white;
-  padding: 12px 25px; /* Más padding para un botón más grande */
+  padding: 12px 25px;
   border: none;
-  border-radius: 8px; /* Bordes más redondeados */
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1em;
   font-weight: 500;
   margin-top: 15px;
-  transition: background-color 0.3s ease, transform 0.1s ease; /* Transiciones para efectos */
+  transition: background-color 0.3s ease, transform 0.1s ease;
 }
 
 /* Efecto al pasar el mouse sobre el botón */
 .accordion-content button:hover {
-  background-color: #0056b3; /* Un tono de azul más oscuro */
-  transform: translateY(-2px); /* Pequeño efecto de levantamiento */
+  background-color: #0056b3;
+  transform: translateY(-2px);
 }
 
 /* Efecto al hacer clic en el botón */
 .accordion-content button:active {
-    transform: translateY(0); /* Vuelve a la posición normal al hacer clic */
+    transform: translateY(0);
 }
 
 /* Estilo para botones deshabilitados */
 .accordion-content button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
-  transform: none; /* Quita el efecto al estar deshabilitado */
+  transform: none;
 }
 
 /* Estilos para mensajes de éxito/error */
 .accordion-content p {
     margin-top: 5px;
-    margin-bottom: 20px; /* Más espacio debajo de los mensajes */
+    margin-bottom: 20px;
     font-size: 0.9em;
-    padding: 10px 15px; /* Padding para los mensajes */
+    padding: 10px 15px;
     border-radius: 5px;
 }
 /* Color de fondo y borde para mensajes de éxito */
@@ -132,13 +129,13 @@
 
 /* Estilos para los títulos de la página y secciones */
 h1 {
-  font-size: 2.5em; /* Tamaño grande para el título principal */
+  font-size: 2.5em;
   color: #343a40;
-  margin-bottom: 40px; /* Mucho espacio debajo del título */
+  margin-bottom: 40px;
   font-weight: 700;
-  text-align: left; /* Alineado a la izquierda */
+  text-align: left;
   padding-bottom: 10px;
-  border-bottom: 1px solid #e9ecef; /* Una línea sutil debajo */
+  border-bottom: 1px solid #e9ecef;
 }
 
 /* Otros títulos (si se usan, como en IngresoForm) */
@@ -167,86 +164,80 @@ h4 {
 
 /* Ocultar el checkbox nativo */
 .toggle-switch-input {
-    display: none; /* Esconder el checkbox por defecto del navegador */
+    display: none;
 }
 
 /* Estilo del contenedor del switch (el track o "carril" gris/azul) */
 .toggle-switch-label {
     position: relative;
-    display: inline-flex; /* Usa inline-flex para alinear el texto y el switch */
-    align-items: center; /* Centra verticalmente el texto y el switch */
+    display: inline-flex;
+    align-items: center;
     cursor: pointer;
-    font-size: 1em; /* Asegura un tamaño de fuente legible para la pregunta */
-    color: #495057; /* Color de texto para la pregunta */
-    user-select: none; /* Evita que el texto sea seleccionable */
-    width: 100%; /* Permite que el label ocupe el ancho completo del form-field */
+    font-size: 1em;
+    color: #495057;
+    user-select: none;
+    width: 100%;
 }
 
 /* El slider (la "perilla" o círculo que se mueve) */
 .toggle-switch-slider {
-    position: relative; /* Para posicionar el círculo dentro */
-    width: 50px; /* Ancho del switch */
-    height: 26px; /* Alto del switch */
-    background-color: #ccc; /* Color cuando está apagado (gris) */
-    border-radius: 26px; /* Hace el track redondeado */
-    transition: background-color 0.4s; /* Animación de cambio de color */
-    margin-left: 15px; /* Espacio entre el texto y el switch */
-    flex-shrink: 0; /* Evita que el switch se encoja */
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background-color: #ccc;
+    border-radius: 26px;
+    transition: background-color 0.4s;
+    margin-left: 15px;
+    flex-shrink: 0;
 }
 
 /* El círculo dentro del slider */
 .toggle-switch-slider::before {
     content: '';
     position: absolute;
-    width: 20px; /* Tamaño del círculo */
+    width: 20px;
     height: 20px;
-    border-radius: 50%; /* Hace el círculo */
-    background-color: white; /* Color del círculo */
-    top: 3px; /* Posición vertical del círculo */
-    left: 3px; /* Posición horizontal del círculo cuando está apagado */
-    transition: transform 0.4s; /* Animación de movimiento del círculo */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Sombra para el círculo */
+    border-radius: 50%;
+    background-color: white;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.4s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 /* Estado cuando el checkbox está 'checked' (encendido) */
 .toggle-switch-input:checked + .toggle-switch-slider {
-    background-color: #007bff; /* Color cuando está encendido (azul) */
+    background-color: #007bff;
 }
 
 /* Mueve el círculo cuando el checkbox está 'checked' (encendido) */
 .toggle-switch-input:checked + .toggle-switch-slider::before {
-    transform: translateX(24px); /* Mueve el círculo a la derecha (50px - 20px - 3px*2 = 24px) */
+    transform: translateX(24px);
 }
 
-/* Estilo para el form-field que contiene el toggle switch (para que ocupe todo el ancho) */
-/* Esto ya lo habíamos puesto, pero lo reitero para asegurar que se aplica bien al checkbox */
-/* .accordion-content .form-field:first-child {
-    flex: 1 1 100%;
-} */ /* Keep this commented or remove if you use the form-field.full-width for this as well */
-
 /* Estilo para campos de solo lectura */
-.accordion-content .read-only-input { /* Changed from .accordion-content .form-field .read-only-input */
-    background-color: #f8f9fa; /* Un gris muy claro */
-    border-color: #e9ecef; /* Un borde ligeramente diferente */
-    cursor: not-allowed; /* Indica que no es editable */
-    opacity: 0.8; /* Ligeramente menos opaco */
+.accordion-content .read-only-input {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    cursor: not-allowed;
+    opacity: 0.8;
 }
 
 /* Estilos para el separador de secciones dentro de los formularios */
 .form-section-separator {
-    flex: 1 1 100%; /* Hace que ocupe todo el ancho para ser una línea de separación */
-    border-bottom: 1px solid #e0e0e0; /* Una línea divisoria sutil */
-    padding-top: 20px; /* Espacio antes de la línea */
-    margin-top: 20px; /* Espacio entre la sección anterior y el separador */
-    padding-bottom: 15px; /* Espacio después del título del separador */
-    margin-bottom: 15px; /* Espacio después de la línea y antes de la nueva sección */
-    text-align: left; /* Alinea el título del separador a la izquierda */
+    flex: 1 1 100%;
+    border-bottom: 1px solid #e0e0e0;
+    padding-top: 20px;
+    margin-top: 20px;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    text-align: left;
 }
 
 .form-section-separator h4 {
     font-size: 1.15em;
     color: #555;
-    margin-bottom: 0; /* No queremos margen extra debajo del h4 dentro del separador */
+    margin-bottom: 0;
     font-weight: 600;
 }
 
@@ -285,14 +276,11 @@ h4 {
     border: 1px solid #f5c6cb;
 }
 
----
-
-
-.form-container {
-    /* Removed width and margin: auto; to allow it to expand to parent's width */
-    margin-top: 20px; /* Keep top margin */
-    margin-bottom: 20px; /* Keep bottom margin */
-    padding: 30px; /* Increased padding to match horizontal spacing of main-content more closely */
+/* PAYMENT FORM SPECIFIC STYLES */
+.form-container { /* This .form-container seems to be for PagoForm.jsx or similar. */
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 30px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #fff;
@@ -309,33 +297,33 @@ h4 {
 /* Grid layout for form fields within PagoForm */
 .form-container .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive 2-column layout */
-    gap: 20px; /* Space between fields */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 /* Specific styles for card number field and logo within PagoForm */
 .form-container .form-field.full-width {
-    grid-column: 1 / -1; /* Make this field span all columns */
+    grid-column: 1 / -1;
 }
 
 /* For the card number input where the card logo appears inside */
 .form-container .form-field input[name="cardNumberFull"] {
     position: relative;
-    padding-right: 60px; /* Make space for the logo */
+    padding-right: 60px;
 }
 
 .form-container .form-field input[name="cardNumberFull"] + .card-logo-container {
     position: absolute;
-    right: 30px; /* Position relative to the parent form-field */
+    right: 30px;
     top: 50%;
     transform: translateY(-50%);
-    height: 30px; /* Ensure logo height is consistent */
+    height: 30px;
     display: flex;
     align-items: center;
 }
 
 .form-container .card-logo-container .card-logo {
-    height: 25px; /* Adjust size as needed */
+    height: 25px;
     width: auto;
     vertical-align: middle;
     opacity: 0.9;
@@ -343,24 +331,24 @@ h4 {
 
 /* Style for the dynamic card type display below the form (separate section) */
 .card-logo-display-container {
-    grid-column: 1 / -1; /* Make it span full width */
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
-    min-height: 40px; /* Ensure space even if no logo */
+    min-height: 40px;
     margin-top: 10px;
     padding: 10px 0;
-    border-top: 1px solid #eee; /* Separator for clarity */
+    border-top: 1px solid #eee;
 }
 
 .card-logo-display-container .card-logo {
-    height: 150px; /* Slightly larger for display */
+    height: 150px;
     width: auto;
     margin-right: 10px;
-    opacity: 1; /* Full opacity for display */
+    opacity: 1;
 }
 
 .card-logo-display-container .help-text {
-    margin-top: 0; /* Remove top margin for alignment */
+    margin-top: 0;
     font-size: 0.9em;
     color: #555;
 }
@@ -369,13 +357,13 @@ h4 {
 /* Grouping for horizontal fields (like month and year) within PagoForm */
 .form-container .form-field-group.horizontal-group {
     display: flex;
-    gap: 15px; /* Space between month and year inputs */
-    grid-column: 1 / -1; /* Make this group span all columns */
+    gap: 15px;
+    grid-column: 1 / -1;
 }
 
 .form-container .horizontal-group .form-field.half-width {
-    flex: 1; /* Each child takes equal space */
-    margin-bottom: 0; /* Remove individual margin if handled by group gap */
+    flex: 1;
+    margin-bottom: 0;
 }
 
 /* Adjustments for labels and inputs in PagoForm */
@@ -405,12 +393,12 @@ h4 {
     border-radius: 8px;
     font-size: 1em;
     font-weight: 500;
-    margin-top: 25px; /* More space above the button */
-    width: auto; /* Adjust width to content for a more compact button */
-    display: block; /* Ensures it takes its own line */
+    margin-top: 25px;
+    width: auto;
+    display: block;
     margin-left: auto;
-    margin-right: auto; /* Center the button */
-    grid-column: 1 / -1; /* Span all columns if inside a grid directly */
+    margin-right: auto;
+    grid-column: 1 / -1;
 }
 
 .form-container button[type="submit"]:hover {
@@ -427,7 +415,7 @@ h4 {
 
 /* Help text adjustments */
 .form-container .help-text {
-    font-size: 0.85em; /* Slightly larger than generic help-text */
+    font-size: 0.85em;
     color: #777;
     margin-top: 5px;
 }
@@ -435,18 +423,40 @@ h4 {
 /* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {
     .form-container .form-grid {
-        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+        grid-template-columns: 1fr;
     }
     .main-content {
-        margin-left: 20px; /* Adjust margin for smaller screens if sidebar collapses */
+        margin-left: 20px;
         margin-right: 20px;
     }
     .form-container .form-field.full-width,
     .form-container .form-field-group.horizontal-group,
     .card-logo-display-container {
-        grid-column: auto; /* Remove span on smaller screens */
+        grid-column: auto;
     }
     .form-container .horizontal-group {
-        flex-direction: column; /* Stack month/year vertically on very small screens */
+        flex-direction: column;
     }
+}
+
+/* --- Estilos para el Acordeón del Formulario de Registro --- */
+/* ESTILOS AÑADIDOS PARA LA SOLUCIÓN */
+.form-accordion-container .accordion-item .accordion-header {
+    width: 100%;                  /* Ocupa todo el ancho disponible */
+    max-width: none;              /* Anula el max-width de home.css */
+    margin: 10px 0;               /* Margen vertical, sin centrado horizontal */
+    text-align: left;             /* Alinea el texto a la izquierda, como en tu captura */
+    padding: 20px 30px;           /* Un buen padding */
+    background: #ffffff;          /* Fondo blanco y limpio */
+    border: 1px solid #e0e0e0;    /* Borde sutil */
+    border-radius: 8px;           /* Bordes redondeados */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra ligera */
+    font-size: 1.1em;             /* Tamaño de fuente legible */
+    font-weight: 500;
+    color: #343a40;
+    transition: background-color 0.3s ease;
+}
+
+.form-accordion-container .accordion-item .accordion-header:hover {
+    background-color: #f8f9fa;   /* Un ligero cambio de color al pasar el mouse */
 }

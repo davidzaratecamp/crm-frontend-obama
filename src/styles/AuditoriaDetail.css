@@ -1,0 +1,122 @@
+/* src/styles/AuditoriaDetail.css */
+
+.auditor-detail-page {
+  padding: 2rem;
+  background-color: #f4f7f9;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.auditor-detail-page h1 {
+  color: #2c3e50;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e1e8ed;
+  padding-bottom: 0.5rem;
+}
+
+.detail-container {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.client-data-panel,
+.audit-panel {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  min-width: 300px;
+}
+
+.client-data-panel h2,
+.audit-panel h2 {
+  color: #34495e;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #3498db;
+  padding-left: 1rem;
+}
+
+.client-data-panel p {
+  line-height: 1.6;
+  color: #555;
+}
+
+.recording-section {
+  margin-bottom: 2rem;
+}
+
+.recording-section h3 {
+  color: #34495e;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.recording-section audio {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.audit-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.audit-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #34495e;
+}
+
+.audit-form select,
+.audit-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 5px;
+  border: 1px solid #dcdcdc;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.audit-form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.audit-form button {
+  width: 100%;
+  padding: 1rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.audit-form button:hover {
+  background-color: #2ecc71;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.client-data-panel {
+  /* ... tus estilos existentes para el panel ... */
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-content {
+  overflow-y: auto; /* Habilita el scroll vertical */
+  max-height: 400px; /* Define la altura máxima antes de que aparezca el scroll */
+  padding-right: 1rem; /* Añade un espacio para que el scroll no se pegue al texto */
+}

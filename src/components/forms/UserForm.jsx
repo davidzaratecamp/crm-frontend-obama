@@ -1,3 +1,4 @@
+// src/components/forms/UserForm.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { calculateAge } from '../../utils/dateCalculations';
@@ -6,8 +7,8 @@ import FormStatusIndicator from '../statusIndicators/FormStatusIndicator';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
-// Añadir onUserUpdated a las props
-function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }) {
+// ✅ MODIFICACIÓN AQUÍ: Añadir 'asesorId' a las props que recibe el componente
+function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated, asesorId }) {
     const [formData, setFormData] = useState({
         solicita_cobertura: false, // Por defecto false
         nombres: '',
@@ -42,7 +43,6 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
     ];
 
     const requiredFields = [
-        // ✅ ELIMINADO: 'solicita_cobertura' de los campos requeridos
         'nombres', 'apellidos', 'sexo', 'fecha_nacimiento',
         'social', 'estatus_migratorio',
         'tipo_vivienda', 'direccion', 'codigo_postal',
@@ -175,18 +175,29 @@ function UserForm({ onUserCreated, initialData, userIdForUpdate, onUserUpdated }
             let response;
             const dataToSend = { ...formData };
 
+            // ✅ MODIFICACIÓN AQUÍ: Añadir 'asesor_id' a 'dataToSend' SOLO si es una creación
+            if (!userIdForUpdate) { // Si no hay userIdForUpdate, es una creación de un NUEVO usuario
+                if (!asesorId) {
+                    setError('No se pudo obtener el ID del agente. Por favor, reinicie la sesión.');
+                    return;
+                }
+                dataToSend.asesor_id = asesorId; // Asigna el ID del asesor aquí
+            }
+
+
             if (userIdForUpdate) {
                 response = await axios.put(`${API_BASE_URL}/api/usuarios/${userIdForUpdate}`, dataToSend);
                 setMessage('✅ Usuario actualizado con éxito.');
                 if (onUserUpdated) {
                     onUserUpdated();
                 }
-            } else {
+            } else { // Es una creación
                 response = await axios.post(`${API_BASE_URL}/api/usuarios`, dataToSend);
                 setMessage('✅ Usuario creado con éxito. ID: ' + response.data.userId);
                 if (onUserCreated) {
                     onUserCreated(response.data.userId);
                 }
+                // Resetear el formulario para un nuevo registro
                 setFormData({
                     solicita_cobertura: false, nombres: '', apellidos: '', sexo: '',
                     fecha_nacimiento: '', social: '', estatus_migratorio: '',

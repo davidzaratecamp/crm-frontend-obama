@@ -1,0 +1,75 @@
+/* src/styles/RejectedAuditsAgent.css */
+
+.rejected-audits-agent-container {
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.rejected-audits-agent-container h1 {
+    color: #c0392b; /* Rojo para destacar que son rechazos */
+    border-bottom: 2px solid #c0392b;
+    padding-bottom: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.auditoria-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.auditoria-card {
+    background-color: #fcecec; /* Fondo claro para las tarjetas de rechazo */
+    border: 1px solid #c0392b;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.auditoria-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.auditoria-card h3 {
+    margin-top: 0;
+    color: #c0392b;
+    font-size: 1.2rem;
+}
+
+.auditoria-card p {
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.auditoria-card strong {
+    color: #333;
+}
+
+.auditoria-card button {
+    background-color: #2c3e50; /* Color oscuro para el botón de corregir */
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 1rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.auditoria-card button:hover {
+    background-color: #34495e;
+}
+
+.error-message {
+    color: #c0392b;
+    background-color: #fcecec;
+    border: 1px solid #c0392b;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}

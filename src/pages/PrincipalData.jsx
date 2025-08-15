@@ -1,3 +1,4 @@
+// frontend/src/pages/PrincipalData.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -5,7 +6,7 @@ import Accordion from '../components/Accordion';
 import AccordionItem from '../components/AccordionItem';
 
 import UserForm from '../components/forms/UserForm';
-import ConyugeForm from '../components/forms/ConyugeForm'; // Importar el nuevo formulario
+import ConyugeForm from '../components/forms/ConyugeForm';
 import DependienteForm from '../components/forms/DependienteForm';
 import IngresoForm from '../components/forms/IngresoForm';
 import PlanSaludForm from '../components/forms/PlanSaludForm';
@@ -31,14 +32,16 @@ function PrincipalData() {
         evidencias: false,
     });
 
-    // NUEVO ESTADO para el conyugue
+    const [asesorId, setAsesorId] = useState(null); // ✅ NUEVO ESTADO PARA EL ID DEL ASESOR
+
+    // NUEVO ESTADO para el conyugue: indica si el usuario declaró "no tiene cónyuge"
     const [conyugeNotApplicable, setConyugeNotApplicable] = useState(false);
 
     // Ajustar el índice inicial a 0
     const [openAccordionIndex, setOpenAccordionIndex] = useState(0);
 
     const [userDataForEdit, setUserDataForEdit] = useState(null);
-    const [conyugeDataForEdit, setConyugeDataForEdit] = useState(null); // NUEVO ESTADO para el cónyuge
+    const [conyugeDataForEdit, setConyugeDataForEdit] = useState(null);
     const [dependientesDataForEdit, setDependientesDataForEdit] = useState([]);
     const [ingresosDataForEdit, setIngresosDataForEdit] = useState(null);
     const [planSaludDataForEdit, setPlanSaludDataForEdit] = useState(null);
@@ -60,7 +63,7 @@ function PrincipalData() {
 
     const clearAllDataStates = useCallback(() => {
         setUserDataForEdit(null);
-        setConyugeDataForEdit(null); // Limpiar cónyuge
+        setConyugeDataForEdit(null);
         setDependientesDataForEdit([]);
         setIngresosDataForEdit(null);
         setPlanSaludDataForEdit(null);
@@ -68,18 +71,17 @@ function PrincipalData() {
         setEvidenciasDataForEdit([]);
         // Resetear completedSteps a su estado inicial
          setCompletedSteps({
-        user: false,
-        conyuge: false,
-        dependiente: false,
-        ingresos: false,
-        planSalud: false,
-        pago: false,
-        evidencias: false,
-    });
-    setConyugeNotApplicable(false); // Reiniciar este estado
-    setOpenAccordionIndex(0);
-    
+            user: false,
+            conyuge: false,
+            dependiente: false,
+            ingresos: false,
+            planSalud: false,
+            pago: false,
+            evidencias: false,
+        });
+        setConyugeNotApplicable(false); // Reiniciar este estado al borrar todo
         setOpenAccordionIndex(0);
+        
         setMessage('');
         setError('');
         setUserFormKey(prevKey => prevKey + 1);
@@ -133,6 +135,25 @@ function PrincipalData() {
         }
     }, [currentUserId, userDataForEdit, fetchUserDataForEdit]);
 
+
+    // ✅ Nuevo useEffect para obtener el ID del asesor desde localStorage
+    useEffect(() => {
+        const personalInfoString = localStorage.getItem('personalInfo');
+        if (personalInfoString) {
+            try {
+                const personalInfo = JSON.parse(personalInfoString);
+                if (personalInfo && personalInfo.id) {
+                    setAsesorId(personalInfo.id);
+                }
+            } catch (e) {
+                console.error("Error parseando personalInfo de localStorage:", e);
+                // Manejar el caso de un JSON inválido en localStorage
+                localStorage.removeItem('personalInfo'); // Limpiar para evitar futuros errores
+                // Opcional: Redirigir al login si es crucial
+            }
+        }
+    }, []);
+
     // --- Callbacks de formularios ---
 
     const handleUserCreated = async (userId) => {
@@ -167,38 +188,32 @@ function PrincipalData() {
         }
     };
 
-    // --- NUEVOS CALLBACKS PARA EL CÓNYUGE ---
+    // --- CALLBACKS PARA EL CÓNYUGE ---
     const handleConyugeChanged = () => {
         if (currentUserId) {
             fetchConyugeDataForEdit(); // Recargar datos del cónyuge
         }
     };
 
-    // PrincipalData.jsx
-
-const handleContinueToDependientes = (noConyuge = false) => { // Añade el parámetro
-    if (noConyuge) {
-        setConyugeNotApplicable(true); // Marca que el cónyuge no aplica
-        markStepCompleted('conyuge'); // Marca el paso como completado
-        setConyugeDataForEdit(null); // Asegúrate de que no haya datos de cónyuge
-        setMessage('Sección de cónyuge completada.');
-    } else {
-        // Esto solo ocurriría si el ConyugeForm tuviera un botón "Continuar" después de guardar un cónyuge
-        // o si queremos que la mera existencia de un cónyuge en initialData lo marque como completado.
-        // Por ahora, asumimos que si se cargó un cónyuge, fetchConyugeDataForEdit lo manejará.
-        // Si el cónyuge se creó/actualizó, el handleSubmit de DependienteForm llama a onContinueToIngresos,
-        // pero ese ya llama a onConyugeChanged (que es onDependienteAdded)
-        // Y luego fetchConyugeDataForEdit se encarga de marcarlo si hay datos.
-        setMessage('Datos del cónyuge guardados con éxito.');
-        // Puedes llamar markStepCompleted('conyuge') aquí también si lo deseas,
-        // pero fetchConyugeDataForEdit ya lo hace si hay datos.
-    }
-    setError('');
-    setOpenAccordionIndex(null);
-    setTimeout(() => {
-        setOpenAccordionIndex(2); // Abre el acordeón de Dependientes
-    }, 300);
-};
+    // Este callback se llama desde ConyugeForm (que a su vez es DependienteForm)
+    // Recibe 'true' si el usuario hizo clic en "No tiene Cónyuge (y avanzar)"
+    const handleContinueToDependientes = (noConyuge = false) => {
+        if (noConyuge) {
+            setConyugeNotApplicable(true); // Marca que el cónyuge no aplica
+            markStepCompleted('conyuge'); // Marca el paso como completado en PrincipalData
+            setConyugeDataForEdit(null); // Asegúrate de que no haya datos de cónyuge si se declaró "no aplica"
+            setMessage('Sección de cónyuge completada (no aplica).');
+        } else {
+            // Esto se ejecuta si un cónyuge fue guardado/actualizado y el ConyugeForm avanzó.
+            // La recarga de datos (fetchConyugeDataForEdit) ya marca el paso como completado.
+            setMessage('Datos del cónyuge guardados con éxito.');
+        }
+        setError('');
+        setOpenAccordionIndex(null);
+        setTimeout(() => {
+            setOpenAccordionIndex(2); // Abre el acordeón de Dependientes
+        }, 300);
+    };
 
     const handleDependienteChanged = () => {
         if (currentUserId) {
@@ -206,12 +221,10 @@ const handleContinueToDependientes = (noConyuge = false) => { // Añade el pará
         }
     };
 
-    // Este callback ya no es necesario ya que el DependienteForm tiene su propio manejo de "continuar"
-    // const handleDependienteFormSubmitted = () => { ... }
-
     const handleContinueToIngresos = () => {
         markStepCompleted('dependiente');
-        setOpenAccordionIndex(3); // Abre ingresos (índice 3 ahora)
+        setOpenAccordionIndex(null); // Close current
+        setTimeout(() => setOpenAccordionIndex(3), 300); // Abre ingresos (índice 3 ahora)
         setMessage('Sección de dependientes completada.');
         setError('');
     };
@@ -240,7 +253,7 @@ const handleContinueToDependientes = (noConyuge = false) => { // Añade el pará
         setIngresosDataForEdit(null);
         setMessage('Datos de ingresos actualizados con éxito.');
         setError('');
-        if (currentUserId && openAccordionIndex === 3) { // Ajustado el índice
+        if (currentUserId && openAccordionIndex === 3) {
              axios.get(`${API_BASE_URL}/api/ingresos/Usuario/${currentUserId}`)
                 .then(response => {
                     setIngresosDataForEdit(response.data.length > 0 ? response.data[0] : null);
@@ -269,7 +282,7 @@ const handleContinueToDependientes = (noConyuge = false) => { // Añade el pará
         setPlanSaludDataForEdit(null);
         setMessage('Datos de plan de salud actualizados con éxito.');
         setError('');
-        if (currentUserId && openAccordionIndex === 4) { // Ajustado el índice
+        if (currentUserId && openAccordionIndex === 4) {
             axios.get(`${API_BASE_URL}/api/planes_salud/usuario/${currentUserId}`)
                 .then(response => {
                     setPlanSaludDataForEdit(response.data.length > 0 ? response.data[0] : null);
@@ -298,8 +311,8 @@ const handleContinueToDependientes = (noConyuge = false) => { // Añade el pará
         setPagoDataForEdit(null);
         setMessage('Información de pago actualizada con éxito.');
         setError('');
-        if (currentUserId && openAccordionIndex === 5) { // Ajustado el índice
-            axios.get(`${API_BASE_URL}/api/usuario/${currentUserId}`)
+        if (currentUserId && openAccordionIndex === 5) {
+            axios.get(`${API_BASE_URL}/api/usuario/${currentUserId}`) // Asumiendo que la ruta para Pago es `/api/usuario/:userId`
                 .then(response => {
                     setPagoDataForEdit(response.data.length > 0 ? response.data[0] : null);
                 })
@@ -331,7 +344,7 @@ const handleContinueToDependientes = (noConyuge = false) => { // Añade el pará
         setEvidenciasDataForEdit([]);
         setMessage('Evidencias actualizadas con éxito.');
         setError('');
-        if (currentUserId && openAccordionIndex === 6) { // Ajustado el índice
+        if (currentUserId && openAccordionIndex === 6) {
             axios.get(`${API_BASE_URL}/api/${currentUserId}/evidencias`)
                 .then(response => {
                     setEvidenciasDataForEdit(response.data);
@@ -345,82 +358,79 @@ const handleContinueToDependientes = (noConyuge = false) => { // Añade el pará
     };
 
 
- // --- Cargar datos del CÓNYUGE --- (NUEVA FUNCIÓN)
- // PrincipalData.jsx
+    // --- Cargar datos del CÓNYUGE ---
+    const fetchConyugeDataForEdit = useCallback(async () => {
+        if (currentUserId) {
+            setLoadingData(true);
+            setDataError(null);
+            try {
+                const url = `${API_BASE_URL}/api/dependientes/usuario/${currentUserId}/parentesco/Cónyuge`;
+                const response = await axios.get(url);
+                const conyuge = response.data; // Será null si no hay cónyuge
 
-const fetchConyugeDataForEdit = useCallback(async () => {
-    if (currentUserId) {
-        setLoadingData(true);
-        setDataError(null);
-        try {
-            const url = `${API_BASE_URL}/api/dependientes/usuario/${currentUserId}/parentesco/Cónyuge`;
-            const response = await axios.get(url);
-            const conyuge = response.data;
+                setConyugeDataForEdit(conyuge);
 
-            setConyugeDataForEdit(conyuge);
-
-            // Lógica modificada:
-            if (conyuge) {
-                markStepCompleted('conyuge');
-                setConyugeNotApplicable(false); // Si hay cónyuge, no aplica el "no tiene"
-            } else {
-                // Si no hay cónyuge en la DB, solo marcamos como completado
-                // si el usuario ya había declarado "no tiene cónyuge" previamente.
+                // Lógica crucial para el checkmark del acordeón del cónyuge:
+                if (conyuge) {
+                    markStepCompleted('conyuge');       // Hay datos del cónyuge, el paso está completo.
+                    setConyugeNotApplicable(false);    // Si hay cónyuge, no aplica el estado "no tiene".
+                } else {
+                    // Si NO hay cónyuge en la DB:
+                    // El paso está completo SÓLO si el usuario YA había declarado "no tiene cónyuge"
+                    if (conyugeNotApplicable) { // <-- Usa el estado local de PrincipalData
+                        markStepCompleted('conyuge');
+                    } else {
+                        // Si no hay cónyuge Y NO se había declarado "no aplica", entonces no está completado.
+                        setCompletedSteps(prev => ({ ...prev, conyuge: false }));
+                    }
+                }
+            } catch (error) {
+                console.error("Error cargando datos del cónyuge para edición:", error);
+                setDataError("No se pudieron cargar los datos del cónyuge. El registro podría no existir o hubo un error.");
+                setConyugeDataForEdit(null);
+                // Si hubo un error al cargar, pero el usuario ya había dicho "no tiene", mantenemos el check.
                 if (conyugeNotApplicable) {
                     markStepCompleted('conyuge');
                 } else {
-                    // Si no hay cónyuge y tampoco se declaró "no aplica", entonces no está completado.
                     setCompletedSteps(prev => ({ ...prev, conyuge: false }));
                 }
+            } finally {
+                setLoadingData(false);
             }
-        } catch (error) {
-            console.error("Error cargando datos del cónyuge para edición:", error);
-            setDataError("No se pudieron cargar los datos del cónyuge. El registro podría no existir o hubo un error.");
+        } else {
             setConyugeDataForEdit(null);
-            // Si hay un error, el paso no está completado a menos que se haya declarado "no aplica"
-            if (conyugeNotApplicable) {
-                 markStepCompleted('conyuge'); // A pesar del error de carga, si se declaró "no aplica", se mantiene
-            } else {
-                setCompletedSteps(prev => ({ ...prev, conyuge: false }));
-            }
-        } finally {
-            setLoadingData(false);
-        }
-    } else {
-        setConyugeDataForEdit(null);
-        // Si no hay currentUserId, y no se había declarado "no aplica", el paso no está completado.
-        if (!conyugeNotApplicable) {
+            // Si no hay `currentUserId`, el paso del cónyuge no puede estar completo.
             setCompletedSteps(prev => ({ ...prev, conyuge: false }));
+            setConyugeNotApplicable(false); // Resetear también si no hay usuario principal
         }
-    }
-}, [currentUserId, markStepCompleted, setCompletedSteps, conyugeNotApplicable]); // Añade conyugeNotApplicable aquí
-
+    }, [currentUserId, markStepCompleted, setCompletedSteps, conyugeNotApplicable]); // Dependencia clave
 
     // Disparar carga de datos del cónyuge cuando se abre el acordeón o cambia el userId
     useEffect(() => {
-        // Cargar SOLO si el acordeón está abierto y no hay datos cargados
-        if (openAccordionIndex === 1 && currentUserId && conyugeDataForEdit === null) {
+        // Cargar SOLO si el acordeón está abierto, hay un userId, y no hay datos cargados O el estado 'no aplicable' cambió
+        if (openAccordionIndex === 1 && currentUserId && (conyugeDataForEdit === null || (conyugeDataForEdit && conyugeNotApplicable))) {
             fetchConyugeDataForEdit();
-        } else if (openAccordionIndex !== 1 && conyugeDataForEdit !== null) {
-            // Si el acordeón se cierra y hay datos, limpiar para forzar recarga al reabrir
+        } else if (openAccordionIndex !== 1) {
+            // Si el acordeón se cierra, se pueden limpiar los datos para forzar recarga al reabrir,
+            // pero no debemos afectar 'conyugeNotApplicable'.
             setConyugeDataForEdit(null);
         }
-    }, [currentUserId, openAccordionIndex, conyugeDataForEdit, fetchConyugeDataForEdit]);
+    }, [currentUserId, openAccordionIndex, conyugeDataForEdit, fetchConyugeDataForEdit, conyugeNotApplicable]); // Añadir conyugeNotApplicable como dependencia
 
-
-    // --- Cargar datos de DEPENDIENTES --- (ahora en índice 2)
+    // --- Cargar datos de DEPENDIENTES ---
     const fetchDependientesDataForEdit = useCallback(async () => {
         if (currentUserId) {
             setLoadingData(true);
             setDataError(null);
             try {
                 // Excluir el cónyuge de la lista de dependientes generales si es necesario en el backend
-                const url = `${API_BASE_URL}/api/${currentUserId}/dependientes/sin-conyuge`; // Puedes necesitar una ruta así
+                const url = `${API_BASE_URL}/api/${currentUserId}/dependientes/sin-conyuge`;
                 const response = await axios.get(url);
                 setDependientesDataForEdit(response.data);
                 if (response.data && response.data.length > 0) {
                     markStepCompleted('dependiente');
                 } else {
+                    // Si no hay dependientes, el paso NO está completado por esta vía (aún puede ser por 'no tiene dependientes')
                     setCompletedSteps(prev => ({ ...prev, dependiente: false }));
                 }
             } catch (error) {
@@ -438,7 +448,6 @@ const fetchConyugeDataForEdit = useCallback(async () => {
     }, [currentUserId, markStepCompleted]);
 
     useEffect(() => {
-        // Ajustar el índice para dependientes
         if (openAccordionIndex === 2 && currentUserId && dependientesDataForEdit.length === 0) {
             fetchDependientesDataForEdit();
         } else if (openAccordionIndex !== 2 && dependientesDataForEdit.length > 0) {
@@ -447,7 +456,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
     }, [currentUserId, openAccordionIndex, dependientesDataForEdit.length, fetchDependientesDataForEdit]);
 
 
-    // --- Cargar datos de INGRESOS (principal y dependientes) --- (ahora en índice 3)
+    // --- Cargar datos de INGRESOS (principal y dependientes) ---
     useEffect(() => {
         if (currentUserId && openAccordionIndex === 3 && ingresosDataForEdit === null) {
             setLoadingData(true);
@@ -475,7 +484,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
         }
     }, [currentUserId, openAccordionIndex, ingresosDataForEdit, markStepCompleted]);
 
-    // --- Cargar datos de PLAN DE SALUD --- (ahora en índice 4)
+    // --- Cargar datos de PLAN DE SALUD ---
     useEffect(() => {
         if (currentUserId && openAccordionIndex === 4 && planSaludDataForEdit === null) {
             setLoadingData(true);
@@ -503,12 +512,12 @@ const fetchConyugeDataForEdit = useCallback(async () => {
         }
     }, [currentUserId, openAccordionIndex, planSaludDataForEdit, markStepCompleted]);
 
-    // --- Cargar datos de INFORMACIÓN DE PAGO --- (ahora en índice 5)
+    // --- Cargar datos de INFORMACIÓN DE PAGO ---
     useEffect(() => {
         if (currentUserId && openAccordionIndex === 5 && pagoDataForEdit === null) {
             setLoadingData(true);
             setDataError(null);
-            axios.get(`${API_BASE_URL}/api/usuario/${currentUserId}`)
+            axios.get(`${API_BASE_URL}/api/usuario/${currentUserId}`) // Asumiendo que esta es la ruta para el pago
                 .then(response => {
                     setPagoDataForEdit(response.data.length > 0 ? response.data[0] : null);
                     if (response.data.length > 0) {
@@ -531,7 +540,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
         }
     }, [currentUserId, openAccordionIndex, pagoDataForEdit, markStepCompleted]);
 
-    // --- Cargar datos de EVIDENCIAS --- (ahora en índice 6)
+    // --- Cargar datos de EVIDENCIAS ---
     useEffect(() => {
         if (currentUserId && openAccordionIndex === 6 && evidenciasDataForEdit.length === 0) {
             setLoadingData(true);
@@ -609,25 +618,26 @@ const fetchConyugeDataForEdit = useCallback(async () => {
                         onUserUpdated={handleUserUpdated}
                         initialData={userDataForEdit}
                         userIdForUpdate={currentUserId}
+                        asesorId={asesorId}
                     />
                     {currentUserId && openAccordionIndex === 0 && (
                         <button onClick={() => setOpenAccordionIndex(1)} style={{ marginTop: '20px' }}>Saltar a Cónyuge</button>
                     )}
                 </AccordionItem>
 
-                {/* NUEVO ACCORDION ITEM PARA EL CÓNYUGE */}
+                {/* ACCORDION ITEM PARA EL CÓNYUGE */}
                 <AccordionItem
                     title="2. Datos del Cónyuge"
                     isOpen={openAccordionIndex === 1}
                     toggleOpen={() => handleAccordionToggle(1)}
-                    showCheck={completedSteps.conyuge}
+                    showCheck={completedSteps.conyuge} 
                 >
                     {currentUserId ? (
                         <ConyugeForm
                             userId={currentUserId}
-                            onConyugeChanged={handleConyugeChanged} // Para recargar datos del cónyuge
-                            initialData={conyugeDataForEdit} // Datos del cónyuge
-                            onContinueToDependientes={handleContinueToDependientes} // Para avanzar a dependientes
+                            onConyugeChanged={handleConyugeChanged}
+                            initialData={conyugeDataForEdit}
+                            onContinueToDependientes={handleContinueToDependientes}
                         />
                     ) : (
                         <p>Por favor, complete los datos del solicitante principal primero para añadir al cónyuge.</p>
@@ -636,7 +646,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
 
                 <AccordionItem
                     title="3. Dependientes"
-                    isOpen={openAccordionIndex === 2} // Ajustar el índice
+                    isOpen={openAccordionIndex === 2}
                     toggleOpen={() => handleAccordionToggle(2)}
                     showCheck={completedSteps.dependiente}
                 >
@@ -645,9 +655,8 @@ const fetchConyugeDataForEdit = useCallback(async () => {
                             <DependienteForm
                                 userId={currentUserId}
                                 onDependienteAdded={handleDependienteChanged}
-                                // onDependienteFormSubmitted ya no es necesario aquí, la lógica de continuar está dentro del DependienteForm
                                 initialData={dependientesDataForEdit}
-                                onContinueToIngresos={handleContinueToIngresos} // Alternativa para solo avanzar
+                                onContinueToIngresos={handleContinueToIngresos}
                             />
                         </>
                     ) : (
@@ -656,8 +665,8 @@ const fetchConyugeDataForEdit = useCallback(async () => {
                 </AccordionItem>
 
                 <AccordionItem
-                    title="4. Ingresos (Solicitante, Cónyuge y Dependientes)" // Actualizar título
-                    isOpen={openAccordionIndex === 3} // Ajustar el índice
+                    title="4. Ingresos (Solicitante, Cónyuge y Dependientes)"
+                    isOpen={openAccordionIndex === 3}
                     toggleOpen={() => handleAccordionToggle(3)}
                     showCheck={completedSteps.ingresos}
                 >
@@ -675,7 +684,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
 
                 <AccordionItem
                     title="5. Plan de Salud"
-                    isOpen={openAccordionIndex === 4} // Ajustar el índice
+                    isOpen={openAccordionIndex === 4}
                     toggleOpen={() => handleAccordionToggle(4)}
                     showCheck={completedSteps.planSalud}
                 >
@@ -693,7 +702,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
 
                 <AccordionItem
                     title="6. Información de Pago"
-                    isOpen={openAccordionIndex === 5} // Ajustar el índice
+                    isOpen={openAccordionIndex === 5}
                     toggleOpen={() => handleAccordionToggle(5)}
                     showCheck={completedSteps.pago}
                 >
@@ -711,7 +720,7 @@ const fetchConyugeDataForEdit = useCallback(async () => {
 
                 <AccordionItem
                     title="7. Evidencias y Documentos"
-                    isOpen={openAccordionIndex === 6} // Ajustar el índice
+                    isOpen={openAccordionIndex === 6}
                     toggleOpen={() => handleAccordionToggle(6)}
                     showCheck={completedSteps.evidencias}
                 >
@@ -798,3 +807,5 @@ const fetchConyugeDataForEdit = useCallback(async () => {
 }
 
 export default PrincipalData;
+
+

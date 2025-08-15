@@ -26,6 +26,9 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const [editingDependienteId, setEditingDependienteId] = useState(null);
     const [age, setAge] = useState(null);
     const [noDependientesDeclared, setNoDependientesDeclared] = useState(false);
+    // NUEVO ESTADO para controlar si se ha seleccionado "No tiene Cónyuge" en este formulario específico
+    const [noConyugeDeclared, setNoConyugeDeclared] = useState(false);
+
 
     const estatusMigratorioOptions = [
         "RESIDENTE", "CIUDADANO", "PERMISO DE TRABAJO", "PASAPORTE",
@@ -43,7 +46,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
 
     const [completedRequiredFields, setCompletedRequiredFields] = useState(0);
 
-    // --- Lógica de precarga de datos y estado `noDependientesDeclared` ---
+    // --- Lógica de precarga de datos y estado `noDependientesDeclared` y `noConyugeDeclared` ---
     useEffect(() => {
         if (isConyugeForm) {
             // Para el formulario del cónyuge, initialData será un solo objeto o null
@@ -57,6 +60,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 });
                 setEditingDependienteId(initialData.id); // Si hay initialData, estamos editando
                 setAge(calculateAge(formattedDate));
+                setNoConyugeDeclared(false); // Si hay datos iniciales, no se ha declarado "no tiene cónyuge"
             } else {
                 // Si no hay initialData para el cónyuge, limpiar el formulario
                 setFormData(prev => ({
@@ -67,6 +71,10 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 }));
                 setEditingDependienteId(null);
                 setAge(null);
+                // Si no hay initialData, asumimos que no se ha declarado 'no cónyuge' aún,
+                // a menos que venga ya de un estado previo del padre (PrincipalData) que lo indique.
+                // Sin embargo, para la inicialización directa de este componente, siempre empezamos sin declarar.
+                setNoConyugeDeclared(false);
             }
             // El concepto de 'noDependientesDeclared' no aplica a un formulario de cónyuge
             setNoDependientesDeclared(false);
@@ -81,6 +89,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 clearForm();
                 setNoDependientesDeclared(false);
             }
+            setNoConyugeDeclared(false); // Asegurar que este estado está en false para dependientes
         }
         setMessage('');
         setError('');
@@ -113,9 +122,14 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     useEffect(() => {
         if (isConyugeForm) {
             // Para el formulario de cónyuge:
-            let completed = countCompletedFields();
-            setCompletedRequiredFields(completed);
-            setTotalRequiredFields(totalRequiredFieldsBase);
+            if (noConyugeDeclared || editingDependienteId) { // Si se declaró "no cónyuge" o si hay un cónyuge
+                setCompletedRequiredFields(1);
+                setTotalRequiredFields(1);
+            } else {
+                let completed = countCompletedFields();
+                setCompletedRequiredFields(completed);
+                setTotalRequiredFields(totalRequiredFieldsBase);
+            }
         } else {
             // Para el formulario de dependientes:
             if (noDependientesDeclared) {
@@ -134,7 +148,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 }
             }
         }
-    }, [formData, noDependientesDeclared, dependientesList, isConyugeForm]);
+    }, [formData, noDependientesDeclared, dependientesList, isConyugeForm, noConyugeDeclared, editingDependienteId]);
 
 
     const countCompletedFields = () => {
@@ -194,9 +208,12 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 [name]: type === 'checkbox' ? checked : value
             }));
         }
-        // Si el usuario empieza a añadir un dependiente/cónyuge, deseleccionar "No tiene dependientes"
+        // Si el usuario empieza a añadir un dependiente/cónyuge, deseleccionar "No tiene dependientes/cónyuge"
         if (!isConyugeForm && noDependientesDeclared) { // Solo aplica a dependientes
             setNoDependientesDeclared(false);
+        }
+        if (isConyugeForm && noConyugeDeclared) { // Solo aplica a cónyuge
+            setNoConyugeDeclared(false);
         }
     };
 
@@ -213,6 +230,12 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         // Esta lógica solo aplica al formulario de dependientes
         if (!isConyugeForm && noDependientesDeclared) {
             onContinueToIngresos(); // Aquí significa 'Continuar a Ingresos' para dependientes
+            return;
+        }
+
+        // Si es el formulario de cónyuge y se declaró que no tiene, no intentar guardar
+        if (isConyugeForm && noConyugeDeclared) {
+            onContinueToIngresos(true); // Avanzar directamente a dependientes (con el flag de 'no cónyuge')
             return;
         }
 
@@ -249,6 +272,8 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
 
             if (!isConyugeForm) { // Solo para dependientes
                 setNoDependientesDeclared(false);
+            } else {
+                setNoConyugeDeclared(false); // Si se añade/actualiza un cónyuge, ya no se ha declarado "no tiene"
             }
 
             if (onDependienteAdded) { // Este callback será onConyugeChanged o onDependienteAdded
@@ -256,23 +281,11 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
             }
 
             // For Cónyuge form, after successful add/update, the form should be ready to edit the existing one
-            // or we might immediately transition if the user is done with this step.
             if (isConyugeForm) {
-                // If it was an add, now it's editing the newly added one.
                 setEditingDependienteId(editingDependienteId || response.data.dependienteId);
-                // Optionally, clear form for a new entry if we allowed multiple, but for spouse we don't.
-                // Instead, the form will display the just-saved spouse's data.
             } else {
                 clearForm(); // For dependents, always clear to add another.
             }
-
-            // If it's the spouse form and an action (add/update) was successful,
-            // we might want to advance to the next step (Dependientes).
-            // This assumes the user adds/edits the spouse and then moves on.
-            if (isConyugeForm) {
-                onContinueToIngresos(); // Advances to Dependientes (next logical step)
-            }
-
 
         } catch (err) {
             console.error('Error al añadir/actualizar dependiente/cónyuge:', err.response ? err.response.data : err.message);
@@ -282,6 +295,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
 
     const editDependiente = (dependiente) => {
         setNoDependientesDeclared(false); // Solo aplica a dependientes
+        setNoConyugeDeclared(false); // Si se va a editar, no se ha declarado "no tiene"
         const formattedDate = dependiente.fecha_nacimiento ?
             new Date(dependiente.fecha_nacimiento).toISOString().split('T')[0] : '';
 
@@ -309,10 +323,9 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                 }
                 clearForm(); // Clear the form after deletion
                 // If it was the cónyuge form and it's deleted, ensure the editingDependienteId is null
-                // and the form reflects an empty state, ready for a new spouse or to indicate none.
                 if (isConyugeForm) {
                      setEditingDependienteId(null); // No spouse is being edited anymore
-                     // No need to call onContinueToIngresos immediately; the form itself will show "No spouse" state.
+                     setNoConyugeDeclared(false); // Si se elimina, no se ha declarado "no tiene"
                 }
             } catch (err) {
                 console.error('Error al eliminar dependiente/cónyuge:', err);
@@ -333,6 +346,7 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
         setAge(null);
         setMessage('');
         setError('');
+        // Importante: no resetear noConyugeDeclared aquí. Solo se resetea si se empieza a llenar el form o se elimina.
     };
 
     // Función para manejar el botón "No tiene dependientes" (solo en DependienteForm)
@@ -349,9 +363,12 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
     const handleNoConyuge = () => {
         clearForm(); // Ensure the form is cleared
         setEditingDependienteId(null); // Ensure no spouse is considered "editing"
-        setMessage('No se ha añadido cónyuge. Continuando al siguiente paso.');
+        setNoConyugeDeclared(true); // <--- Marcamos que se declaró "No tiene Cónyuge"
+        setMessage('✅ No se ha añadido cónyuge.'); // Mensaje de confirmación
         setError('');
-        onContinueToIngresos(); // Advance to Dependientes
+        // **CRUCIAL**: Notificar al componente padre que se ha elegido "no cónyuge" para que active el check.
+        // También avanzamos al siguiente paso del acordeón.
+        onContinueToIngresos(true); // <--- Pasar 'true' para indicar que no hay cónyuge.
     };
 
 
@@ -368,148 +385,263 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
             {message && <p className="form-messages success">{message}</p>}
             {error && <p className="form-messages error">{error}</p>}
 
-            {/* Si es formulario de dependientes y se declaró que no tiene, no mostrar el formulario */}
-            {!(isConyugeForm ? false : noDependientesDeclared) && (
-                // For the Cónyuge form, only show the form if we're adding or editing.
-                // If a spouse exists and we're not explicitly editing, we might hide the form
-                // or ensure it's pre-filled with the existing spouse's data.
-                // The current `editingDependienteId` check covers this well.
-                <form onSubmit={handleSubmit}>
-                    <div className="form-grid">
+            {/* Renderizado condicional del formulario del cónyuge */}
+            {isConyugeForm ? (
+                noConyugeDeclared ? (
+                    <div className="checklist-confirmation" style={{ textAlign: 'center', padding: '20px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '8px', border: '1px solid #c3e6cb', marginTop: '20px' }}>
+                        <p style={{ fontSize: '1.2em', fontWeight: 'bold' }}>
+                            ✅ Usted ha declarado que no tiene cónyuge.
+                        </p>
+                        {/* Estos botones son para cuando el usuario ya vio el mensaje y quiere continuar o cambiar de opinión */}
+                        <button type="button" onClick={() => onContinueToIngresos(true)} style={{ backgroundColor: '#007bff', marginTop: '15px', padding: '10px 20px', fontSize: '1em', borderRadius: '5px' }}>
+                            Continuar a Dependientes
+                        </button>
+                        <button type="button" onClick={() => setNoConyugeDeclared(false)} style={{ backgroundColor: '#6c757d', marginLeft: '10px', marginTop: '15px', padding: '10px 20px', fontSize: '1em', borderRadius: '5px' }}>
+                            Volver y Añadir Cónyuge
+                        </button>
+                    </div>
+                ) : (
+                    // Si no se ha declarado "no cónyuge", muestra el formulario normal
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-grid">
 
-                        <div className="form-field">
-                            <label>Parentesco:<span className="required-star">*</span></label>
-                            {isConyugeForm ? (
+                            <div className="form-field">
+                                <label>Parentesco:<span className="required-star">*</span></label>
                                 <input type="text" value="Cónyuge" disabled className="read-only-input" />
-                            ) : (
+                            </div>
+
+                            <div className="form-field">
+                                <label className="toggle-switch-label">
+                                    Solicita cobertura?:
+                                    <input
+                                        type="checkbox"
+                                        name="solicita_cobertura"
+                                        checked={formData.solicita_cobertura}
+                                        onChange={handleChange}
+                                        className="toggle-switch-input"
+                                    />
+                                    <span className="toggle-switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="form-field">
+                                <label>Nombres:<span className="required-star">*</span></label>
+                                <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Apellidos:<span className="required-star">*</span></label>
+                                <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Sexo:<span className="required-star">*</span></label>
+                                <select name="sexo" value={formData.sexo} onChange={handleChange} required>
+                                    <option value="">Selecciona</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Masculino">Masculino</option>
+                                </select>
+                            </div>
+
+                            <div className="form-section-separator">
+                                <h4>Datos Demográficos y de Contacto</h4>
+                            </div>
+
+                            <div className="form-field">
+                                <label>Fecha de Nacimiento:<span className="required-star">*</span></label>
+                                <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} required />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Edad Actual:</label>
+                                <input
+                                    type="text"
+                                    value={age !== null ? `${age} años` : ''}
+                                    disabled
+                                    readOnly
+                                    className="read-only-input"
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Número Social:</label>
+                                <input
+                                    type="text"
+                                    name="social"
+                                    value={formData.social}
+                                    onChange={handleChange}
+                                    maxLength="9"
+                                    pattern="\d{9}"
+                                    title="El número social debe contener exactamente 9 dígitos."
+                                    inputMode="numeric"
+                                />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Estatus Migratorio:<span className="required-star">*</span></label>
+                                <select name="estatus_migratorio" value={formData.estatus_migratorio} onChange={handleChange} required>
+                                    <option value="">Selecciona una opción</option>
+                                    {estatusMigratorioOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-field">
+                                <label className="toggle-switch-label">
+                                    Medicare o Medicaid?:
+                                    <input
+                                        type="checkbox"
+                                        name="medicare_medicaid"
+                                        checked={formData.medicare_medicaid}
+                                        onChange={handleChange}
+                                        className="toggle-switch-input"
+                                    />
+                                    <span className="toggle-switch-slider"></span>
+                                </label>
+                            </div>
+
+                        </div> {/* Cierre de form-grid */}
+
+                        <button type="submit">
+                            {editingDependienteId ? 'Actualizar Cónyuge' : 'Añadir Cónyuge'}
+                        </button>
+                        {editingDependienteId && ( // Only show "Clear Form" for cónyuge when editing
+                            <button type="button" onClick={clearForm} style={{ backgroundColor: '#ffc107', marginLeft: '10px' }}>
+                                Borrar Formulario
+                            </button>
+                        )}
+                    </form>
+                )
+            ) : (
+                // Lógica existente para el formulario de dependientes, oculta si se declaró no tener dependientes
+                !(noDependientesDeclared) && (
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-grid">
+
+                            <div className="form-field">
+                                <label>Parentesco:<span className="required-star">*</span></label>
                                 <select name="parentesco" value={formData.parentesco} onChange={handleChange} required>
                                     <option value="">Selecciona</option>
-                                    {/* <option value="Cónyuge">Cónyuge</option> YA NO AQUÍ */}
                                     <option value="Hijo">Hijo</option>
                                     <option value="Hijastro">Hijastro</option>
                                     <option value="Padre">Padre</option>
                                     <option value="Madre">Madre</option>
                                     <option value="Otro">Otro</option>
                                 </select>
-                            )}
-                        </div>
+                            </div>
 
-                        <div className="form-field">
-                            <label className="toggle-switch-label">
-                                Solicita cobertura?:
+                            <div className="form-field">
+                                <label className="toggle-switch-label">
+                                    Solicita cobertura?:
+                                    <input
+                                        type="checkbox"
+                                        name="solicita_cobertura"
+                                        checked={formData.solicita_cobertura}
+                                        onChange={handleChange}
+                                        className="toggle-switch-input"
+                                    />
+                                    <span className="toggle-switch-slider"></span>
+                                </label>
+                            </div>
+
+                            <div className="form-field">
+                                <label>Nombres:<span className="required-star">*</span></label>
+                                <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Apellidos:<span className="required-star">*</span></label>
+                                <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Sexo:<span className="required-star">*</span></label>
+                                <select name="sexo" value={formData.sexo} onChange={handleChange} required>
+                                    <option value="">Selecciona</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Masculino">Masculino</option>
+                                </select>
+                            </div>
+
+                            <div className="form-section-separator">
+                                <h4>Datos Demográficos y de Contacto</h4>
+                            </div>
+
+                            <div className="form-field">
+                                <label>Fecha de Nacimiento:<span className="required-star">*</span></label>
+                                <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} required />
+                            </div>
+
+                            <div className="form-field">
+                                <label>Edad Actual:</label>
                                 <input
-                                    type="checkbox"
-                                    name="solicita_cobertura"
-                                    checked={formData.solicita_cobertura}
-                                    onChange={handleChange}
-                                    className="toggle-switch-input"
+                                    type="text"
+                                    value={age !== null ? `${age} años` : ''}
+                                    disabled
+                                    readOnly
+                                    className="read-only-input"
                                 />
-                                <span className="toggle-switch-slider"></span>
-                            </label>
-                        </div>
+                            </div>
 
-                        <div className="form-field">
-                            <label>Nombres:<span className="required-star">*</span></label>
-                            <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required />
-                        </div>
-
-                        <div className="form-field">
-                            <label>Apellidos:<span className="required-star">*</span></label>
-                            <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required />
-                        </div>
-
-                        <div className="form-field">
-                            <label>Sexo:<span className="required-star">*</span></label>
-                            <select name="sexo" value={formData.sexo} onChange={handleChange} required>
-                                <option value="">Selecciona</option>
-                                <option value="Femenino">Femenino</option>
-                                <option value="Masculino">Masculino</option>
-                            </select>
-                        </div>
-
-                        <div className="form-section-separator">
-                            <h4>Datos Demográficos y de Contacto</h4>
-                        </div>
-
-                        <div className="form-field">
-                            <label>Fecha de Nacimiento:<span className="required-star">*</span></label>
-                            <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} required />
-                        </div>
-
-                        <div className="form-field">
-                            <label>Edad Actual:</label>
-                            <input
-                                type="text"
-                                value={age !== null ? `${age} años` : ''}
-                                disabled
-                                readOnly
-                                className="read-only-input"
-                            />
-                        </div>
-
-                        <div className="form-field">
-                            <label>Número Social:</label>
-                            <input
-                                type="text"
-                                name="social"
-                                value={formData.social}
-                                onChange={handleChange}
-                                maxLength="9"
-                                pattern="\d{9}"
-                                title="El número social debe contener exactamente 9 dígitos."
-                                inputMode="numeric"
-                            />
-                        </div>
-
-                        <div className="form-field">
-                            <label>Estatus Migratorio:<span className="required-star">*</span></label>
-                            <select name="estatus_migratorio" value={formData.estatus_migratorio} onChange={handleChange} required>
-                                <option value="">Selecciona una opción</option>
-                                {estatusMigratorioOptions.map(option => (
-                                    <option key={option} value={option}>{option}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-field">
-                            <label className="toggle-switch-label">
-                                Medicare o Medicaid?:
+                            <div className="form-field">
+                                <label>Número Social:</label>
                                 <input
-                                    type="checkbox"
-                                    name="medicare_medicaid"
-                                    checked={formData.medicare_medicaid}
+                                    type="text"
+                                    name="social"
+                                    value={formData.social}
                                     onChange={handleChange}
-                                    className="toggle-switch-input"
+                                    maxLength="9"
+                                    pattern="\d{9}"
+                                    title="El número social debe contener exactamente 9 dígitos."
+                                    inputMode="numeric"
                                 />
-                                <span className="toggle-switch-slider"></span>
-                            </label>
-                        </div>
+                            </div>
 
-                    </div> {/* Cierre de form-grid */}
+                            <div className="form-field">
+                                <label>Estatus Migratorio:<span className="required-star">*</span></label>
+                                <select name="estatus_migratorio" value={formData.estatus_migratorio} onChange={handleChange} required>
+                                    <option value="">Selecciona una opción</option>
+                                    {estatusMigratorioOptions.map(option => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            </div>
 
-                    <button type="submit">
-                        {editingDependienteId ?
-                            `Actualizar ${isConyugeForm ? 'Cónyuge' : 'Dependiente'}` :
-                            `Añadir ${isConyugeForm ? 'Cónyuge' : 'Dependiente'}`
-                        }
-                    </button>
-                    {isConyugeForm && editingDependienteId && ( // Only show "Clear Form" for cónyuge when editing
-                        <button type="button" onClick={clearForm} style={{ backgroundColor: '#ffc107', marginLeft: '10px' }}>
-                            Borrar Formulario
+                            <div className="form-field">
+                                <label className="toggle-switch-label">
+                                    Medicare o Medicaid?:
+                                    <input
+                                        type="checkbox"
+                                        name="medicare_medicaid"
+                                        checked={formData.medicare_medicaid}
+                                        onChange={handleChange}
+                                        className="toggle-switch-input"
+                                    />
+                                    <span className="toggle-switch-slider"></span>
+                                </label>
+                            </div>
+
+                        </div> {/* Cierre de form-grid */}
+
+                        <button type="submit">
+                            {editingDependienteId ? 'Actualizar Dependiente' : 'Añadir Dependiente'}
                         </button>
-                    )}
-                    {!isConyugeForm && editingDependienteId && ( // Only show "Add New Dependiente" for dependents when editing
-                        <button type="button" onClick={clearForm} style={{ backgroundColor: '#ffc107', marginLeft: '10px' }}>
-                            Añadir Nuevo Dependiente
-                        </button>
-                    )}
-                </form>
+                        {editingDependienteId && ( // Only show "Add New Dependiente" for dependents when editing
+                            <button type="button" onClick={clearForm} style={{ backgroundColor: '#ffc107', marginLeft: '10px' }}>
+                                Añadir Nuevo Dependiente
+                            </button>
+                        )}
+                    </form>
+                )
             )}
 
             {/* Sección para mostrar cónyuge/dependientes o el botón "No tiene..." */}
             <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
                 {isConyugeForm ? ( // Si es el formulario de Cónyuge
                     editingDependienteId ? ( // Si ya hay un cónyuge cargado (means initialData was present or one was just added/edited)
+                        // Este bloque se muestra si hay un cónyuge existente y estamos en el modo de edición/visualización.
+                        // Ya se ha llenado el formulario o se ha cargado.
                         <div style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                             padding: '10px 15px', marginBottom: '8px', backgroundColor: '#f8f9fa',
@@ -527,18 +659,22 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                                     style={{ backgroundColor: '#dc3545', padding: '8px 12px', fontSize: '0.9em', marginLeft: '8px' }}>
                                     Eliminar
                                 </button>
-                                <button type="button" onClick={onContinueToIngresos} style={{ backgroundColor: '#007bff', marginLeft: '10px', padding: '8px 12px', fontSize: '0.9em' }}>
+                                <button type="button" onClick={() => onContinueToIngresos(false)} style={{ backgroundColor: '#007bff', marginLeft: '10px', padding: '8px 12px', fontSize: '0.9em' }}>
                                     Continuar a Dependientes
                                 </button>
                             </div>
                         </div>
-                    ) : ( // No cónyuge is currently loaded/being edited
-                        <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#e9ecef', borderRadius: '8px' }}>
-                            <p>No hay cónyuge registrado. Añada uno arriba o avance si no aplica.</p>
-                            <button type="button" onClick={handleNoConyuge} style={{ backgroundColor: '#28a745', marginTop: '10px' }}>
-                                No tiene Cónyuge (y avanzar)
-                            </button>
-                        </div>
+                    ) : (
+                        // Si no hay cónyuge cargado/editándose Y NO se ha declarado "no cónyuge",
+                        // muestra el botón para declarar que no tiene o el mensaje si ya se declaró.
+                        !noConyugeDeclared && ( // Solo muestra este bloque si NO se ha declarado "no cónyuge"
+                            <div style={{ textAlign: 'center', padding: '20px', backgroundColor: '#e9ecef', borderRadius: '8px' }}>
+                                <p>No hay cónyuge registrado. Añada uno arriba o avance si no aplica.</p>
+                                <button type="button" onClick={handleNoConyuge} style={{ backgroundColor: '#28a745', marginTop: '10px' }}>
+                                    No tiene Cónyuge (y avanzar)
+                                </button>
+                            </div>
+                        )
                     )
                 ) : ( // Si es el formulario de Dependientes
                     dependientesList.length > 0 ? (
@@ -570,10 +706,6 @@ function DependienteForm({ userId, onDependienteAdded, initialData, onContinueTo
                             <button type="button" onClick={onContinueToIngresos} style={{ backgroundColor: '#007bff', marginTop: '10px' }}>
                                 Continuar a Ingresos
                             </button>
-                            {/* The "No tiene dependientes" button should be available even if there are dependents
-                                if the user wants to explicitly state they only want to list the primary applicant.
-                                However, its primary use case is when no dependents have been added yet.
-                            */}
                             <button type="button" onClick={handleNoDependientes} style={{ backgroundColor: '#6c757d', marginLeft: '10px', marginTop: '10px' }}>
                                 No tiene dependientes (y avanzar)
                             </button>
